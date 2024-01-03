@@ -1,0 +1,55 @@
+{
+    "location": {
+        "latitude": 51.022885982761615,
+        "longitude": 7.036540911121287,
+        "city": "Leverkusen",
+        "region": "Germany",
+        "timezone": "Europe/Berlin",
+        "altitude": {
+            "value": 60.0,
+            "unit": "m"
+        }
+    },
+    "housetop": {
+        "1": {
+            "orientation": {
+                "value": 236.0,
+                "unit": "degree"
+            },
+            "inclination": {
+                "value": 40.0,
+                "unit": "degree"
+            },
+            "area": {
+                "value": 19.53,
+                "unit": "qm"
+            },
+            "efficiency": {
+                "value": 0.215,
+                "unit": "%"
+            }
+        },
+        "2": {
+            "orientation": {
+                "value": 56.0,
+                "unit": "degree"
+            },
+            "inclination": {
+                "value": 40.0,
+                "unit": "degree"
+            },
+            "area": {
+                "value": 11.72,
+                "unit": "qm"
+            },
+            "efficiency": {
+                "value": 0.215,
+                "unit": "%"
+            }
+        }
+    },
+    "server": {
+        "host": "192.168.178.38",
+        "path": "/solar_api/v1/"
+    }
+}
