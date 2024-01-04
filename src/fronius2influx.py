@@ -3,15 +3,17 @@ import datetime
 import json
 from time import sleep
 from typing import Any, Dict, List
-
 from astral import LocationInfo
-# from astral.julian import julianday_to_juliancentury, julianday
-from astral.sun import sun, elevation, azimuth  # , eq_of_time
-from influxdb_client_3 import InfluxDBClient3
+from astral.julian import julianday_to_juliancentury, julianday
+from astral.sun import sun, elevation, azimuth, eq_of_time
+from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
 from requests.exceptions import ConnectionError
 import math
 import pytz
+from sys import exit
+
+from fronius_aux import flatten_json
 
 
 class WrongFroniusData(Exception):
@@ -26,42 +28,18 @@ class DataCollectionError(Exception):
     pass
 
 
-def flatten_json(y) -> Dict[str, Any]:
-    """
-    https://towardsdatascience.com/flattening-json-objects-in-python-f5343c794b10
-    :param y: semi-structured JSON object
-    :return: flattened JSON object
-    """
-    out: Dict[str, Any] = dict()
-
-    def flatten(x, name='') -> Dict[str, Any]:
-        if type(x) is dict:
-            for a in x:
-                flatten(x[a], name + a + '_')
-        elif type(x) is list:
-            i = 0
-            for a in x:
-                flatten(a, name + str(i) + '_')
-                i += 1
-        else:
-            out[name[:-1]] = x
-
-    flatten(y)
-
-    return out
-
-
 class FroniusToInflux:
     BACKOFF_INTERVAL = 5
     IGNORE_SUN_DOWN = False
 
     def __init__(
             self,
-            client: InfluxDBClient3,
+            client: InfluxDBClient,
             parameter: Dict[Any, Any],
             endpoints: List[str],
     ):
         self.client = client
+        self.write = client.write_api(write_options=WriteOptions())
         self.endpoints = endpoints
         self.parameter = parameter
         self.location = LocationInfo(
@@ -201,7 +179,6 @@ class FroniusToInflux:
                 }
             ]
         else:
-            print(collection, meter)
             raise DataCollectionError("Unknown data collection type.")
 
     def sun_is_shining(self) -> None:
@@ -222,12 +199,40 @@ class FroniusToInflux:
         altitude = self.parameter["location"]["altitude"]["value"]
         el = elevation(self.location.observer)
         az = azimuth(self.location.observer)
+        # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
+        # air_mass = 1. / math.cos(math.radians(90. - el))
+        air_mass_revised = 1. / (
+                math.cos(math.radians(90. - el))
+                + 0.50572 * (6.07995 + el) ** -1.6364
+        )
+        air_mass_attenuation = (
+                (1. - a * altitude) * 0.7 ** air_mass_revised ** 0.678
+                + a * altitude
+        )
+        # Direct beam intensity / W m⁻²
+        intens = 1_353 * air_mass_attenuation
+        # Estimate of global irradiance / W m⁻²
+        # add_diffuse_radiation = 1.1 * intens
+        result: Dict[str, float | None] = {
+            "sun_elevation": el,
+            "sun_azimuth": az,
+            "air_mass": air_mass_revised if el > 0 else None,
+            "atmospheric_attenuation": air_mass_attenuation if el > 0 else None
+        }
+        print("sun elevation: {0} deg, "
+              "sun azimuth: {1} deg, "
+              "air mass: {2}, "
+              "air mass attenuation: {3}".format(
+            el,
+            az,
+            air_mass_revised if el > 0 else None,
+            air_mass_attenuation if el > 0 else None)
+        )
         # print(eq_of_time(
         #     juliancentury=julianday_to_juliancentury(
         #         julianday=julianday(at=datetime.datetime.utcnow())
         #     )
         # ))
-        result: Dict[str, float | None] = dict()
 
         for item, value in self.parameter['housetop'].items():
             # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
@@ -240,37 +245,15 @@ class FroniusToInflux:
                 0.
             )
             incidence_angle_sun = math.degrees(math.asin(r))
-            # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
             if el > 0:
-                # air_mass = 1. / math.cos(math.radians(90. - el))
-                air_mass_revised = 1. / (
-                        math.cos(math.radians(90. - el))
-                        + 0.50572 * (6.07995 + el) ** -1.6364
-                )
-                air_mass_attenuation = (
-                        (1. - a * altitude) * 0.7 ** air_mass_revised ** 0.678
-                        + a * altitude
-                )
-                # Direct beam intensity / W m⁻²
-                intens = 1_353 * air_mass_attenuation
-                # Estimate of global irradiance / W m⁻²
-                # add_diffuse_radiation = 1.1 * intens
                 print("{0}, "
-                      "sun elevation: {7} deg, " 
                       "incidence angle: {1} deg, "
                       "incidence factor: {2}, "
-                      "air mass: {3}, "
-                      "air mass attenuation: {6}, "
-                      "sun radiation: {4} Wm⁻², "
-                      "true irradiation: {5} Wm⁻²".format(
+                      "true irradiation: {3} Wm⁻²".format(
                         item,
                         incidence_angle_sun,
                         r,
-                        air_mass_revised,
-                        intens,
-                        intens * r,
-                        air_mass_attenuation,
-                        el))
+                        intens * r))
                 result[item] = {
                     "intensity_corr_area_eff": intens
                     * value['area']['value']
@@ -285,7 +268,7 @@ class FroniusToInflux:
 
         return [
             {
-                'measurement': 'solar_data',
+                'measurement': 'SolarData',
                 'time': datetime.datetime.now(
                     pytz.utc
                 ).isoformat(
@@ -306,20 +289,23 @@ class FroniusToInflux:
                         self.data = response.json()
                         collected_data.extend(self.translate_response())
                         # sleep(self.BACKOFF_INTERVAL)
-#                    self.client.write_points(collected_data)
                     # solar parameter
                     collected_data.extend(self.sun_parameter())
+                    self.write.write(
+                        bucket="Fronius",
+                        org="Fronius",
+                        record=collected_data,
+                        write_precision='s'
+                        )
                     print(collected_data)
-                    print('Data written')
+                    # print('Data written')
                     sleep(self.BACKOFF_INTERVAL)
                 except SunIsDown:
                     print("Waiting for sunrise")
                     sleep(60)
-                    print('Waited 60 seconds for sunrise')
                 except ConnectionError:
                     print("Waiting for connection...")
                     sleep(10)
-                    print('Waited 10 seconds for connection')
                 except Exception as e:
                     self.data = {}
                     sleep(10)
@@ -327,6 +313,7 @@ class FroniusToInflux:
 
         except KeyboardInterrupt:
             print("Finishing. Goodbye!")
+            exit(0)
 
 
 if __name__ == "__main__":
@@ -334,15 +321,20 @@ if __name__ == "__main__":
     with open('data/parameter.json', 'r') as f:
         parameter = json.load(f)
 
-    fronius_host = parameter["server"]["host"]
-    fronius_path = parameter["server"]["path"]
+    with open("{}{}".format(
+             "../",  # ToDo
+             parameter['influxdb']['secret_file'])) as t:
+        influxdb_token_write = t.read()
 
-    client = InfluxDBClient3(
-        host='localhost',
-        port=8087,
-        username='grafana',
-        password='grafana',
-        ssl=False
+    fronius_host = parameter['server']['host']
+    fronius_path = parameter['server']['path']
+
+    client = InfluxDBClient(
+        url="http://{0}:{1}".format(parameter['influxdb']['host'],
+                                    parameter['influxdb']['port']),
+        token=influxdb_token_write,
+        org=parameter['influxdb']['organization'],
+        verify_ssl=parameter['influxdb']['verify_ssl']
     )
     # client.switch_database('grafana')
 
