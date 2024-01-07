@@ -5,15 +5,35 @@ from time import sleep
 from typing import Any, Dict, List
 from astral import LocationInfo
 from astral.julian import julianday_to_juliancentury, julianday
-from astral.sun import sun, elevation, azimuth, eq_of_time
+from astral.sun import elevation, azimuth, eq_of_time
 from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
 from requests.exceptions import ConnectionError
 import math
 import pytz
 from sys import exit
+import os
+import logging
+# internal imports
+from fronius_aux import flatten_json, get_secret
 
-from fronius_aux import flatten_json
+__author__ = "Dr. Ralf Antonius Timmermann"
+__copyright__ = ("Copyright (c) 2024, Dr. Ralf Antonius Timmermann "
+                 "All rights reserved.")
+__credits__ = ""
+__license__ = "BSD-3"
+__version__ = "0.0.1"
+__maintainer__ = "Dr. Ralf Antonius Timmermann"
+__email__ = "ralf.timmermann@gmx.de"
+__status__ = "dev"
+
+# Logging Format
+MYFORMAT: str = ("%(asctime)s.%(msecs)03d :: %(levelname)s: %(filename)s - "
+                 "%(lineno)s - %(funcName)s()\t%(message)s")
+LOGGING_LEVEL: str = "INFO"
+logging.basicConfig(format=MYFORMAT,
+                    level=getattr(logging, LOGGING_LEVEL),
+                    datefmt="%Y-%m-%d %H:%M:%S")
 
 
 class WrongFroniusData(Exception):
@@ -129,7 +149,7 @@ class FroniusToInflux:
             storage_controller = self.data['Body']['Data']['Controller']
             return [
                 {
-                    'measurement': storage,
+                    'measurement': "Battery",
                     'time': timestamp,
                     'fields': {
                         'Current_DC': storage_controller.get('Current_DC', 0.),
@@ -148,7 +168,7 @@ class FroniusToInflux:
             meter_data = self.data['Body']['Data']
             return [
                 {
-                    'measurement': meter,
+                    'measurement': "SmartMeter",
                     'time': timestamp,
                     'fields': {
                         'Enable': meter_data.get(
@@ -181,23 +201,12 @@ class FroniusToInflux:
         else:
             raise DataCollectionError("Unknown data collection type.")
 
-    def sun_is_shining(self) -> None:
-        s = sun(
-            self.location.observer,
-            # date=datetime.datetime.now(tz=self.tz),
-            tzinfo=self.tz
-        )
-        if (not self.IGNORE_SUN_DOWN
-                and not s['sunrise']
-                < datetime.datetime.now(tz=self.tz)
-                < s['sunset']):
-            raise SunIsDown
-        return None
-
     def sun_parameter(self):
         a = 0.00014  # constant / m⁻¹
         altitude = self.parameter["location"]["altitude"]["value"]
         el = elevation(self.location.observer)
+        if not self.IGNORE_SUN_DOWN and el < 0.:
+            raise SunIsDown
         az = azimuth(self.location.observer)
         # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
         # air_mass = 1. / math.cos(math.radians(90. - el))
@@ -228,6 +237,7 @@ class FroniusToInflux:
             air_mass_revised if el > 0 else None,
             air_mass_attenuation if el > 0 else None)
         )
+        # ToDo equation of time needed?
         # print(eq_of_time(
         #     juliancentury=julianday_to_juliancentury(
         #         julianday=julianday(at=datetime.datetime.utcnow())
@@ -279,17 +289,18 @@ class FroniusToInflux:
         ]
 
     def run(self) -> None:
+        flag_sun_is_down = False
+        flag_connection = False
+        flag_exception = False
         try:
             while True:
                 try:
-                    self.sun_is_shining()
                     collected_data = []
                     for url in self.endpoints:
                         response = get(url)
                         self.data = response.json()
                         collected_data.extend(self.translate_response())
-                        # sleep(self.BACKOFF_INTERVAL)
-                    # solar parameter
+                    # add solar parameter
                     collected_data.extend(self.sun_parameter())
                     self.write.write(
                         bucket="Fronius",
@@ -299,17 +310,28 @@ class FroniusToInflux:
                         )
                     print(collected_data)
                     # print('Data written')
+                    flag_sun_is_down = False
+                    flag_connection = False
+                    flag_exception = False
                     sleep(self.BACKOFF_INTERVAL)
                 except SunIsDown:
-                    print("Waiting for sunrise")
+                    if not flag_sun_is_down:
+                        logging.info("Sun below horizon. "
+                                     "Waiting for sun to rise ...")
+                        flag_sun_is_down = True
                     sleep(60)
                 except ConnectionError:
-                    print("Waiting for connection...")
+                    if not flag_connection:
+                        logging.warning("Waiting for connection ...")
+                        flag_connection = True
                     sleep(10)
                 except Exception as e:
+                    if not flag_exception:
+                        logging.warning("Exception: {}".format(e))
+                        logging.warning("Waiting for exception to suspend ...")
+                        flag_exception = True
                     self.data = {}
                     sleep(10)
-                    print("Exception: {}".format(e))
 
         except KeyboardInterrupt:
             print("Finishing. Goodbye!")
@@ -321,23 +343,24 @@ if __name__ == "__main__":
     with open('data/parameter.json', 'r') as f:
         parameter = json.load(f)
 
-    with open("{}{}".format(
-             "../",  # ToDo
-             parameter['influxdb']['secret_file'])) as t:
-        influxdb_token_write = t.read()
-
-    fronius_host = parameter['server']['host']
-    fronius_path = parameter['server']['path']
+    INFLUXDB_HOST = os.getenv('INFLUXDB_HOST',
+                              parameter['influxdb']['host'])
+    INFLUXDB_PORT = int(os.getenv('INFLUXDB_PORT',
+                                  parameter['influxdb']['port']))
+    INFLUXDB_TOKEN = os.getenv('INFLUXDB_TOKEN')  # if run outside Docker
+    influxdb_token_write = get_secret('INFLUXDB_TOKEN_FILE',
+                                      INFLUXDB_TOKEN)
 
     client = InfluxDBClient(
-        url="http://{0}:{1}".format(parameter['influxdb']['host'],
-                                    parameter['influxdb']['port']),
+        url="http://{0}:{1}".format(INFLUXDB_HOST,
+                                    INFLUXDB_PORT),
         token=influxdb_token_write,
         org=parameter['influxdb']['organization'],
         verify_ssl=parameter['influxdb']['verify_ssl']
     )
-    # client.switch_database('grafana')
 
+    fronius_host = parameter['server']['host']
+    fronius_path = parameter['server']['path']
     endpoints = [
         'http://{0}{1}GetInverterRealtimeData.cgi'
         '?Scope=Device&DataCollection=CommonInverterData&DeviceId=1'
@@ -360,5 +383,5 @@ if __name__ == "__main__":
         parameter=parameter,
         endpoints=endpoints
     )
-    z.IGNORE_SUN_DOWN = True
+    z.IGNORE_SUN_DOWN = parameter['ignore_sun_down']
     z.run()

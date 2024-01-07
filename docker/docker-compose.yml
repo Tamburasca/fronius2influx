@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+################################################################################
+# Fronius database influxDB 2.7
+################################################################################
+  influxdb2:
+    image: "influxdb:2.7"
+    container_name: &database-container-name influx_fronius
+    networks:
+      mqtt_net:
+    volumes:
+    # :ro leads to permission problems:
+      - ./data/influxdb2/etc/influxdb:/etc/influxdb2
+      - ./data/influxdb2/var/lib/influxdb:/var/lib/influxdb2
+      - ./data/influxdb2/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+    env_file:
+      - influxdb2.env
+    secrets:
+      - influxdb_init_password
+    ports:
+      - "8086:8086"
+    entrypoint: ['bash', '-c', 'export DOCKER_INFLUXDB_INIT_PASSWORD=$$(cat /var/run/secrets/influxdb_init_password) ; source /entrypoint.sh']
+#    user: "${USER_ID}"
+
+################################################################################
+# Fronius Grafana Dashboard
+################################################################################
+  grafana:
+    image: "grafana/grafana:latest"
+    container_name: grafana_fronius
+    networks:
+      mqtt_net:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana/etc/grafana:/etc/grafana
+      - ./data/grafana/var/lib/grafana:/var/lib/grafana
+    restart: unless-stopped
+    secrets:
+      - influxdb_token_read
+    user: "1000"
+    entrypoint: ['bash', '-c', 'export INFLUXDB_TOKEN_READ=$$(cat /var/run/secrets/influxdb_token_read) ; source /run.sh']
+
+################################################################################
+# Fronius Web Rest API Readout
+################################################################################
+  fronius2influx:
+    build:
+      context: ..
+      dockerfile: ./docker/application/Dockerfile
+    image: 'fronius2influx:0.1'
+    container_name: "fronius2influx"
+    networks:
+      mqtt_net:
+    restart: unless-stopped
+    secrets:
+      - influxdb_token_write
+    depends_on:
+        - influxdb2
+    environment:
+      INFLUXDB_HOST: *database-container-name
+      INFLUXDB_PORT: 8086
+      INFLUXDB_TOKEN_FILE: /run/secrets/influxdb_token_write
+
+secrets:
+    influxdb_init_password:
+        file: data/secrets/influxdb_init_password
+    influxdb_token_write:
+        file: data/secrets/influxdb_token_write
+    influxdb_token_read:
+        file: data/secrets/influxdb_token_read
+
+networks:
+    mqtt_net:
+        driver: bridge

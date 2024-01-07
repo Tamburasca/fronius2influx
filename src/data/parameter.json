@@ -57,7 +57,7 @@
         "port" : 8086,
         "verify_ssl": false,
         "organization": "Fronius",
-        "bucket": "Fronius",
-        "secret_file": "docker/data/secrets/influxdb_token_write"
-    }
+        "bucket": "Fronius"
+    },
+    "ignore_sun_down": true
 }

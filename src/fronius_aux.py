@@ -1,3 +1,7 @@
+from typing import Dict, Any
+import os
+
+
 def flatten_json(y) -> Dict[str, Any]:
     """
     https://towardsdatascience.com/flattening-json-objects-in-python-f5343c794b10
@@ -21,3 +25,20 @@ def flatten_json(y) -> Dict[str, Any]:
     flatten(y)
 
     return out
+
+
+def get_secret(
+        key: str,
+        default: str = ''
+) -> str:
+    """
+    fetch any PW from file, otherwise PW is default
+    :param key: filename that contains token - as provided in docker-compose
+    :param default: default PW
+    :return: PW
+    """
+    value = os.getenv(key, default)
+    if os.path.isfile(value):
+        with open(value) as f:
+            return f.read()
+    return value
