@@ -4,11 +4,11 @@ services:
 ################################################################################
 # Fronius database influxDB 2.7
 ################################################################################
-  influxdb2:
+  fronius_influxdb2:
     image: "influxdb:2.7"
     container_name: &database-container-name influx_fronius
     networks:
-      mqtt_net:
+      fronius_net:
     volumes:
     # :ro leads to permission problems:
       - ./data/influxdb2/etc/influxdb:/etc/influxdb2
@@ -27,11 +27,11 @@ services:
 ################################################################################
 # Fronius Grafana Dashboard
 ################################################################################
-  grafana:
+  fronius_grafana:
     image: "grafana/grafana:latest"
     container_name: grafana_fronius
     networks:
-      mqtt_net:
+      fronius_net:
     ports:
       - "3000:3000"
     volumes:
@@ -53,12 +53,12 @@ services:
     image: 'fronius2influx:0.1'
     container_name: "fronius2influx"
     networks:
-      mqtt_net:
+      fronius_net:
     restart: unless-stopped
     secrets:
       - influxdb_token_write
     depends_on:
-        - influxdb2
+        - fronius_influxdb2
     environment:
       INFLUXDB_HOST: *database-container-name
       INFLUXDB_PORT: 8086
@@ -73,5 +73,5 @@ secrets:
         file: data/secrets/influxdb_token_read
 
 networks:
-    mqtt_net:
+    fronius_net:
         driver: bridge
