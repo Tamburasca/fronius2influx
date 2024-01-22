@@ -1,4 +1,6 @@
-# coding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import datetime
 import json
 from time import sleep
@@ -22,18 +24,10 @@ __copyright__ = ("Copyright (c) 2024, Dr. Ralf Antonius Timmermann "
                  "All rights reserved.")
 __credits__ = ""
 __license__ = "BSD-3"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __maintainer__ = "Dr. Ralf Antonius Timmermann"
 __email__ = "ralf.timmermann@gmx.de"
 __status__ = "dev"
-
-# Logging Format
-MYFORMAT: str = ("%(asctime)s.%(msecs)03d :: %(levelname)s: %(filename)s - "
-                 "%(lineno)s - %(funcName)s()\t%(message)s")
-LOGGING_LEVEL: str = "INFO"
-logging.basicConfig(format=MYFORMAT,
-                    level=getattr(logging, LOGGING_LEVEL),
-                    datefmt="%Y-%m-%d %H:%M:%S")
 
 
 class WrongFroniusData(Exception):
@@ -57,6 +51,7 @@ class FroniusToInflux:
             client: InfluxDBClient,
             parameter: Dict[Any, Any],
             endpoints: List[str],
+            debug: bool = False
     ):
         self.client = client
         self.write = client.write_api(write_options=WriteOptions())
@@ -71,6 +66,7 @@ class FroniusToInflux:
         )
         self.tz = pytz.timezone(parameter['location']['timezone'])
         self.data: Dict[Any, Any] = dict()
+        self.debug = debug
 
     def get_float_or_zero(
             self,
@@ -82,7 +78,7 @@ class FroniusToInflux:
             raise WrongFroniusData('Response structure is not healthy.')
         return 0. if 'Value' not in internal_data.get(value, {}) \
                      or internal_data.get(value, {}).get('Value') is None \
-            else internal_data.get(value)['Value']
+            else float(internal_data.get(value)['Value'])
 
     def translate_response(self) -> List[Dict]:
         collection = self.data['Head']['RequestArguments'].get('DataCollection')
@@ -146,55 +142,56 @@ class FroniusToInflux:
             ]
 
         elif collection is None and storage == "BYD Battery-Box Premium HV":
-            storage_controller = self.data['Body']['Data']['Controller']
+            c = self.data['Body']['Data']['Controller']
             return [
                 {
                     'measurement': "Battery",
                     'time': timestamp,
                     'fields': {
-                        'Current_DC': storage_controller.get('Current_DC', 0.),
-                        'Enable': storage_controller.get('Enable', -1),
-                        'StateOfCharge_Relative': storage_controller.get(
-                            'StateOfCharge_Relative', -1),
-                        'Status_BatteryCell': storage_controller.get(
-                            'Status_BatteryCell', -1),
-                        'Temperature_Cell': storage_controller.get(
-                            'Temperature_Cell', -1),
-                        'Voltage_DC': storage_controller.get('Voltage_DC', 0.)
+                        'Current_DC': float(c.get(
+                            'Current_DC', 0.)),
+                        'Enable': c.get('Enable', -1),
+                        'StateOfCharge_Relative': float(c.get(
+                            'StateOfCharge_Relative', -1.)),
+                        'Status_BatteryCell': float(c.get(
+                            'Status_BatteryCell', -1.)),
+                        'Temperature_Cell': float(c.get(
+                            'Temperature_Cell', -1.)),
+                        'Voltage_DC': float(c.get('Voltage_DC', 0.))
                     }
                 }
             ]
         elif collection is None and meter == "Smart Meter TS 65A-3":
-            meter_data = self.data['Body']['Data']
+            m = self.data['Body']['Data']
             return [
                 {
                     'measurement': "SmartMeter",
                     'time': timestamp,
                     'fields': {
-                        'Enable': meter_data.get(
+                        'Enable': m.get(
                             'Enable', -1),
-                        'PowerReal_P_Sum': meter_data.get(
-                            'PowerReal_P_Sum', 0.),
-                        'PowerReal_P_Phase_1': meter_data.get(
-                            'PowerReal_P_Phase_1', 0.),
-                        'PowerReal_P_Phase_2': meter_data.get(
-                            'PowerReal_P_Phase_2', 0.),
-                        'PowerReal_P_Phase_3': meter_data.get(
-                            'PowerReal_P_Phase_3', 0.),
-                        'Current_AC_Sum': meter_data.get(
-                            'Current_AC_Sum', 0.),
-                        'Current_AC_Phase_1': meter_data.get(
-                            'Current_AC_Phase_1', 0.),
-                        'Current_AC_Phase_2': meter_data.get(
-                            'Current_AC_Phase_2', 0.),
-                        'Current_AC_Phase_3': meter_data.get(
-                            'Current_AC_Phase_3', 0.),
-                        'Voltage_AC_Phase_1': meter_data.get(
-                            'Voltage_AC_Phase_1', 0.),
-                        'Voltage_AC_Phase_2': meter_data.get(
-                            'Voltage_AC_Phase_2', 0.),
-                        'Voltage_AC_Phase_3': meter_data.get(
-                            'Voltage_AC_Phase_3', 0.),
+                        'PowerReal_P_Sum': float(m.get(
+                            'PowerReal_P_Sum', 0.)),
+                        'PowerReal_P_Phase_1': float(m.get(
+                            'PowerReal_P_Phase_1', 0.)),
+                        'PowerReal_P_Phase_2': float(m.get(
+                            'PowerReal_P_Phase_2', 0.)),
+                        'PowerReal_P_Phase_3': float(m.get(
+                            'PowerReal_P_Phase_3', 0.)),
+                        'Current_AC_Sum': float(m.get(
+                            'Current_AC_Sum', 0.)),
+                        'Current_AC_Phase_1': float(m.get(
+                            'Current_AC_Phase_1', 0.)),
+                        'Current_AC_Phase_2': float(m.get(
+                            'Current_AC_Phase_2', 0.)),
+                        'Current_AC_Phase_3': float(m.get(
+                            'Current_AC_Phase_3', 0.)),
+                        'Voltage_AC_Phase_1': float(m.get(
+                            'Voltage_AC_Phase_1', 0.)),
+                        'Voltage_AC_Phase_2': float(m.get(
+                            'Voltage_AC_Phase_2', 0.)),
+                        'Voltage_AC_Phase_3': float(m.get(
+                            'Voltage_AC_Phase_3', 0.)),
                     }
                 }
             ]
@@ -228,10 +225,10 @@ class FroniusToInflux:
             "air_mass": air_mass_revised if el > 0 else None,
             "atmospheric_attenuation": air_mass_attenuation if el > 0 else None
         }
-        print("sun elevation: {0} deg, "
-              "sun azimuth: {1} deg, "
-              "air mass: {2}, "
-              "air mass attenuation: {3}".format(
+        logging.debug("sun elevation: {0} deg, "
+                      "sun azimuth: {1} deg, "
+                      "air mass: {2}, "
+                      "air mass attenuation: {3}".format(
             el,
             az,
             air_mass_revised if el > 0 else None,
@@ -256,18 +253,18 @@ class FroniusToInflux:
             )
             incidence_angle_sun = math.degrees(math.asin(r))
             if el > 0:
-                print("{0}, "
-                      "incidence angle: {1} deg, "
-                      "incidence factor: {2}, "
-                      "true irradiation: {3} Wm⁻²".format(
-                        item,
-                        incidence_angle_sun,
-                        r,
-                        intens * r))
+                logging.debug("{0}, "
+                              "incidence angle: {1} deg, "
+                              "incidence factor: {2}, "
+                              "true irradiation: {3} Wm⁻²".format(
+                    item,
+                    incidence_angle_sun,
+                    r,
+                    intens * r))
                 result[item] = {
                     "intensity_corr_area_eff": intens
-                    * value['area']['value']
-                    * value['efficiency']['value'],
+                                               * value['area']['value']
+                                               * value['efficiency']['value'],
                     "incidence_ratio": r
                 }
             else:
@@ -302,22 +299,22 @@ class FroniusToInflux:
                         collected_data.extend(self.translate_response())
                     # add solar parameter
                     collected_data.extend(self.sun_parameter())
-                    self.write.write(
-                        bucket="Fronius",
-                        org="Fronius",
-                        record=collected_data,
-                        write_precision='s'
+                    if self.debug:
+                        print(collected_data)
+                    else:
+                        self.write.write(
+                            bucket="Fronius",
+                            org="Fronius",
+                            record=collected_data,
+                            write_precision='s'
                         )
-                    print(collected_data)
-                    # print('Data written')
                     flag_sun_is_down = False
                     flag_connection = False
                     flag_exception = False
                     sleep(self.BACKOFF_INTERVAL)
                 except SunIsDown:
                     if not flag_sun_is_down:
-                        logging.info("Sun below horizon. "
-                                     "Waiting for sun to rise ...")
+                        logging.warning("Waiting for sun to rise ...")
                         flag_sun_is_down = True
                     sleep(60)
                 except ConnectionError:
@@ -327,7 +324,7 @@ class FroniusToInflux:
                     sleep(10)
                 except Exception as e:
                     if not flag_exception:
-                        logging.warning("Exception: {}".format(e))
+                        logging.error("Exception: {}".format(e))
                         logging.warning("Waiting for exception to suspend ...")
                         flag_exception = True
                     self.data = {}
@@ -339,9 +336,16 @@ class FroniusToInflux:
 
 
 if __name__ == "__main__":
-
     with open('data/parameter.json', 'r') as f:
         parameter = json.load(f)
+
+    # Logging Format
+    MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - "
+                     "%(lineno)s - %(funcName)s()\t%(message)s")
+    LOGGING_LEVEL: str = "DEBUG" if parameter['debug'] else "INFO"
+    logging.basicConfig(format=MYFORMAT,
+                        level=getattr(logging, LOGGING_LEVEL),
+                        datefmt="%Y-%m-%d %H:%M:%S")
 
     INFLUXDB_HOST = os.getenv('INFLUXDB_HOST',
                               parameter['influxdb']['host'])
@@ -362,18 +366,18 @@ if __name__ == "__main__":
     fronius_host = parameter['server']['host']
     fronius_path = parameter['server']['path']
     endpoints = [
-        'http://{0}{1}GetInverterRealtimeData.cgi'
-        '?Scope=Device&DataCollection=CommonInverterData&DeviceId=1'
+        "http://{0}{1}GetInverterRealtimeData.cgi"
+        "?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
         .format(fronius_host,
                 fronius_path),
-        'http://{0}{1}GetInverterRealtimeData.cgi'
-        '?Scope=Device&DataCollection=3PInverterData&DeviceId=1'
+        # "http://{0}{1}GetInverterRealtimeData.cgi"
+        # "?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
+        # .format(fronius_host,
+        #         fronius_path),
+        "http://{0}{1}GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
         .format(fronius_host,
                 fronius_path),
-        'http://{0}{1}GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0'
-        .format(fronius_host,
-                fronius_path),
-        'http://{0}{1}GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0'
+        "http://{0}{1}GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
         .format(fronius_host,
                 fronius_path)
     ]
@@ -381,7 +385,8 @@ if __name__ == "__main__":
     z = FroniusToInflux(
         client=client,
         parameter=parameter,
-        endpoints=endpoints
+        endpoints=endpoints,
+        debug=parameter['debug']
     )
     z.IGNORE_SUN_DOWN = parameter['ignore_sun_down']
     z.run()

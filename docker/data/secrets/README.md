@@ -1,6 +1,6 @@
 The following files are required in this folder:
 
-    influxdb_init_password - Password for initial user of database Username is defined in influxdb.env (Default: ralf)
+    influxdb_init_password - Password for initial user of database Username is defined in influxdb2.env
 
     influxdb_token_read - InfluxDB token for Read
 
