@@ -6,8 +6,8 @@ import json
 from time import sleep
 from typing import Any, Dict, List
 from astral import LocationInfo
-from astral.julian import julianday_to_juliancentury, julianday
-from astral.sun import elevation, azimuth, eq_of_time
+# from astral.julian import julianday_to_juliancentury, julianday
+from astral.sun import elevation, azimuth  # , eq_of_time
 from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
 from requests.exceptions import ConnectionError
@@ -24,10 +24,10 @@ __copyright__ = ("Copyright (c) 2024, Dr. Ralf Antonius Timmermann "
                  "All rights reserved.")
 __credits__ = ""
 __license__ = "BSD-3"
-__version__ = "0.0.2"
+__version__ = "0.1.0"
 __maintainer__ = "Dr. Ralf Antonius Timmermann"
 __email__ = "ralf.timmermann@gmx.de"
-__status__ = "dev"
+__status__ = "QA"
 
 
 class WrongFroniusData(Exception):
@@ -45,6 +45,8 @@ class DataCollectionError(Exception):
 class FroniusToInflux:
     BACKOFF_INTERVAL = 5
     IGNORE_SUN_DOWN = False
+    SOLAR_CONSTANT = 1_361  # W m⁻²
+    A = 0.00014  # constant / m⁻¹
 
     def __init__(
             self,
@@ -199,91 +201,86 @@ class FroniusToInflux:
             raise DataCollectionError("Unknown data collection type.")
 
     def sun_parameter(self):
-        a = 0.00014  # constant / m⁻¹
         altitude = self.parameter["location"]["altitude"]["value"]
         el = elevation(self.location.observer)
-        if not self.IGNORE_SUN_DOWN and el < 0.:
-            raise SunIsDown
-        az = azimuth(self.location.observer)
-        # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
-        # air_mass = 1. / math.cos(math.radians(90. - el))
-        air_mass_revised = 1. / (
-                math.cos(math.radians(90. - el))
-                + 0.50572 * (6.07995 + el) ** -1.6364
-        )
-        air_mass_attenuation = (
-                (1. - a * altitude) * 0.7 ** air_mass_revised ** 0.678
-                + a * altitude
-        )
-        # Direct beam intensity / W m⁻²
-        intens = 1_353 * air_mass_attenuation
-        # Estimate of global irradiance / W m⁻²
-        # add_diffuse_radiation = 1.1 * intens
-        result: Dict[str, float | None] = {
-            "sun_elevation": el,
-            "sun_azimuth": az,
-            "air_mass": air_mass_revised if el > 0 else None,
-            "atmospheric_attenuation": air_mass_attenuation if el > 0 else None
-        }
-        logging.debug("sun elevation: {0} deg, "
-                      "sun azimuth: {1} deg, "
-                      "air mass: {2}, "
-                      "air mass attenuation: {3}".format(
-            el,
-            az,
-            air_mass_revised if el > 0 else None,
-            air_mass_attenuation if el > 0 else None)
-        )
         # ToDo equation of time needed?
         # print(eq_of_time(
         #     juliancentury=julianday_to_juliancentury(
         #         julianday=julianday(at=datetime.datetime.utcnow())
         #     )
         # ))
-
-        for item, value in self.parameter['housetop'].items():
-            # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
-            r = max(
-                math.cos(math.radians(el))
-                * math.sin(math.radians(value['inclination']['value']))
-                * math.cos(math.radians(value['orientation']['value'] - az))
-                + math.sin(math.radians(el))
-                * math.cos(math.radians(value['inclination']['value'])),
-                0.
+        if el > 0:
+            az = azimuth(self.location.observer)
+            # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
+            # air_mass = 1. / math.cos(math.radians(90. - el))
+            air_mass_revised = 1. / (
+                    math.cos(math.radians(90. - el))
+                    + 0.50572 * (6.07995 + el) ** -1.6364
             )
-            incidence_angle_sun = math.degrees(math.asin(r))
-            if el > 0:
+            air_mass_attenuation = (
+                    (1. - self.A * altitude) * 0.7 ** air_mass_revised ** 0.678
+                    + self.A * altitude
+            )
+            # Direct beam intensity / W m⁻²
+            intens = self.SOLAR_CONSTANT * air_mass_attenuation
+            # Estimate of global irradiance / W m⁻²
+            # add_diffuse_radiation = 1.1 * intens
+            result: Dict[str, float | None] = {
+                "sun_elevation": el,
+                "sun_azimuth": az,
+                "air_mass": air_mass_revised if el > 0 else None,
+                "atmospheric_attenuation": air_mass_attenuation if el > 0
+                else None
+            }
+            logging.debug("sun elevation: {0} deg, "
+                          "sun azimuth: {1} deg, "
+                          "air mass: {2}, "
+                          "air mass attenuation: {3}".format(
+                            el,
+                            az,
+                            air_mass_revised if el > 0 else None,
+                            air_mass_attenuation if el > 0 else None))
+            for item, value in self.parameter['housetop'].items():
+                # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
+                r = max(
+                    math.cos(math.radians(el))
+                    * math.sin(math.radians(value['inclination']['value']))
+                    * math.cos(math.radians(value['orientation']['value'] - az))
+                    + math.sin(math.radians(el))
+                    * math.cos(math.radians(value['inclination']['value'])),
+                    0.
+                )
+                incidence_angle_sun = math.degrees(math.asin(r))
                 logging.debug("{0}, "
                               "incidence angle: {1} deg, "
                               "incidence factor: {2}, "
                               "true irradiation: {3} Wm⁻²".format(
-                    item,
-                    incidence_angle_sun,
-                    r,
-                    intens * r))
+                                item,
+                                incidence_angle_sun,
+                                r,
+                                intens * r))
                 result[item] = {
                     "intensity_corr_area_eff": intens
                                                * value['area']['value']
                                                * value['efficiency']['value'],
                     "incidence_ratio": r
                 }
-            else:
-                result[item] = {
-                    "intensity_corr_area_eff": 0.,
-                    "incidence_ratio": 0.
+            return [
+                {
+                    'measurement': 'SolarData',
+                    'time': datetime.datetime.now(
+                        pytz.utc
+                    ).isoformat(
+                        timespec='seconds'
+                    ),
+                    'fields': flatten_json(result)
                 }
-
-        return [
-            {
-                'measurement': 'SolarData',
-                'time': datetime.datetime.now(
-                    pytz.utc
-                ).isoformat(
-                    timespec='seconds'
-                ),
-                'fields': flatten_json(result)
-            }
-        ]
+            ]
+        else:
+            if not self.IGNORE_SUN_DOWN:
+                raise SunIsDown
+            else:
+                return []
 
     def run(self) -> None:
         flag_sun_is_down = False

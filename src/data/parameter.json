@@ -49,7 +49,7 @@
         }
     },
     "server": {
-        "host": "192.168.178.38",
+        "host": "Fronius-34243758",
         "path": "/solar_api/v1/"
     },
     "influxdb": {

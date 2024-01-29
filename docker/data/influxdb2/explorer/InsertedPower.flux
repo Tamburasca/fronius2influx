@@ -47,5 +47,7 @@ combine = union(tables: [solar, inserted])
                       Intensity_NE: if r.IncidenceRatio_NE < LIMIT_INCIDENCE then 0.
                       else r.IncidenceRatio_NE * r.Intensity_NE
                       }))
-  |> keep(columns: ["_time", "PDC_SW", "PDC_NE", "Intensity_SW", "Intensity_NE", "diffuse_SW", "diffuse_NE"])
+
+  |> map(fn: (r) => ({r with PDC_TOT: r.PDC_SW + r.PDC_NE}))
+  |> keep(columns: ["_time", "PDC_TOT", "PDC_SW", "PDC_NE", "Intensity_SW", "Intensity_NE", "diffuse_SW", "diffuse_NE"])
 combine

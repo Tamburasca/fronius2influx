@@ -1,14 +1,21 @@
 # Changelog 
-## 0.0.x (2023-xx-xx)
+## 0.1.x (2024-xx-xx)
 ### Added
-- debug flag, if enabled no writing to influxdb
-- Flux statements for Grafana
 ### Changed
 ### Fixed
 ### Deprecated
 ### Removed
 ### Security
-## 0.0.2 (2023-01-22)
+## 0.1.0 (2024-01-29)
+### Added
+- Flux statements for Grafana
+### Changed
+- Solar data (influxdb measurement) disabled if sun is down
+### Fixed
+### Deprecated
+### Removed
+### Security
+## 0.0.2 (2024-01-22)
 ### Added
 - debug flag, if enabled no writing to influxdb
 ### Changed
