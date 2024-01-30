@@ -213,6 +213,8 @@ class FroniusToInflux:
             az = azimuth(self.location.observer)
             # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
             # air_mass = 1. / math.cos(math.radians(90. - el))
+            # The Kasten and Young formula was originally given in terms of
+            # altitude el as
             air_mass_revised = 1. / (
                     math.cos(math.radians(90. - el))
                     + 0.50572 * (6.07995 + el) ** -1.6364
@@ -223,14 +225,11 @@ class FroniusToInflux:
             )
             # Direct beam intensity / W m⁻²
             intens = self.SOLAR_CONSTANT * air_mass_attenuation
-            # Estimate of global irradiance / W m⁻²
-            # add_diffuse_radiation = 1.1 * intens
             result: Dict[str, float | None] = {
                 "sun_elevation": el,
                 "sun_azimuth": az,
-                "air_mass": air_mass_revised if el > 0 else None,
-                "atmospheric_attenuation": air_mass_attenuation if el > 0
-                else None
+                "air_mass": air_mass_revised,
+                "atmospheric_attenuation": air_mass_attenuation
             }
             logging.debug("sun elevation: {0} deg, "
                           "sun azimuth: {1} deg, "
@@ -238,8 +237,8 @@ class FroniusToInflux:
                           "air mass attenuation: {3}".format(
                             el,
                             az,
-                            air_mass_revised if el > 0 else None,
-                            air_mass_attenuation if el > 0 else None))
+                            air_mass_revised,
+                            air_mass_attenuation))
             for item, value in self.parameter['housetop'].items():
                 # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
                 r = max(
