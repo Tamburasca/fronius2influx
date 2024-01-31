@@ -6,8 +6,7 @@ import json
 from time import sleep
 from typing import Any, Dict, List
 from astral import LocationInfo
-# from astral.julian import julianday_to_juliancentury, julianday
-from astral.sun import elevation, azimuth  # , eq_of_time
+from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
 from requests.exceptions import ConnectionError
@@ -203,12 +202,6 @@ class FroniusToInflux:
     def sun_parameter(self):
         altitude = self.parameter["location"]["altitude"]["value"]
         el = elevation(self.location.observer)
-        # ToDo equation of time needed?
-        # print(eq_of_time(
-        #     juliancentury=julianday_to_juliancentury(
-        #         julianday=julianday(at=datetime.datetime.utcnow())
-        #     )
-        # ))
         if el > 0:
             az = azimuth(self.location.observer)
             # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation

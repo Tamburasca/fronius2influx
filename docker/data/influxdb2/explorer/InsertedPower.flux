@@ -8,10 +8,10 @@ LIMIT_INCIDENCE = 0.035 // corresponds to > 2 degree incidence angle
 inserted = from(bucket: "Fronius")
   |> range(start: v.timeRangeStart, stop:v.timeRangeStop)
   |> filter(fn: (r) =>
-    r._measurement == "CommonInverterData" and
-    contains(value: r._field, set: fields1))
+    r._measurement == "CommonInverterData" and contains(value: r._field, set: fields1))
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-  |> map(fn: (r) => ({r with PDC_SW: r.IDC * r.UDC, PDC_NE: r.IDC_2 * r.UDC_2}))
+  |> map(fn: (r) => ({r with PDC_SW: r.IDC * r.UDC,
+                             PDC_NE: r.IDC_2 * r.UDC_2}))
   |> keep(columns: ["_time", "PDC_SW", "PDC_NE"])
 
 fields2 = ["1_intensity_corr_area_eff", "1_incidence_ratio", "2_intensity_corr_area_eff", "2_incidence_ratio"]
@@ -47,7 +47,6 @@ combine = union(tables: [solar, inserted])
                       Intensity_NE: if r.IncidenceRatio_NE < LIMIT_INCIDENCE then 0.
                       else r.IncidenceRatio_NE * r.Intensity_NE
                       }))
-
   |> map(fn: (r) => ({r with PDC_TOT: r.PDC_SW + r.PDC_NE}))
   |> keep(columns: ["_time", "PDC_TOT", "PDC_SW", "PDC_NE", "Intensity_SW", "Intensity_NE", "diffuse_SW", "diffuse_NE"])
 combine
