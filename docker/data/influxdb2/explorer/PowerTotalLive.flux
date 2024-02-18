@@ -2,6 +2,10 @@
 // Power Total Live
 //
 import "internal/debug"
+import "timezone"
+
+option location = timezone.location(name: "Europe/Berlin")
+
 fieldsCommon = ["UDC", "IDC", "UDC_2", "IDC_2", "PAC"]
 fieldsBattery = ["Voltage_DC", "Current_DC", "StateOfCharge_Relative"]
 rES = 6 // time resolution (s)

@@ -1,0 +1,537 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Display all key figures",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Power / W",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "stepAfter",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": 3600000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unitScale": true
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_time"
+            },
+            "properties": [
+              {
+                "id": "custom.axisLabel",
+                "value": "Time"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "BatteryLoadingLevel"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Battery Loading Level / %"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    0,
+                    10
+                  ],
+                  "fill": "dot"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.axisGridShow",
+                "value": false
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PowerBattery"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PowerSolarDC"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PowerNet"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PowerConsumed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 8,
+      "maxDataPoints": 4000,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
+          },
+          "query": "//\n// Power Total Live\n//\nimport \"internal/debug\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Berlin\")\n\nfieldsCommon = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\", \"PAC\"]\nfieldsBattery = [\"Voltage_DC\", \"Current_DC\", \"StateOfCharge_Relative\"]\nrES = 6 // time resolution (s)\n\nfrom(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"Battery\" and contains(value: r._field, set: fieldsBattery)) or\n                       (r[\"_measurement\"] == \"CommonInverterData\" and contains(value: r._field, set: fieldsCommon)) or\n                       (r[\"_measurement\"] == \"SmartMeter\" and r[\"_field\"] == \"PowerReal_P_Sum\")\n    )\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration return ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\", \"_measurement\"], valueColumn: \"_value\")\n  |> rename(columns: {\n    PowerReal_P_Sum_SmartMeter: \"PowerNet\",\n    PAC_CommonInverterData: \"PowerAC\",\n    StateOfCharge_Relative_Battery: \"BatteryLoadingLevel\"\n    })\n  |> map(fn: (r) => ({r with PowerBattery: -r.Voltage_DC_Battery * r.Current_DC_Battery,\n                             PowerSolarDC: r.IDC_CommonInverterData * r.UDC_CommonInverterData\n                                           + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData,\n                             PowerConsumed: r.PowerAC\n                                            + r.PowerNet\n    }))\n  |> keep(columns:[\"_time\",\n                   \"PowerSolarDC\",\n                   \"PowerConsumed\",\n                   \"PowerNet\",\n                   \"PowerBattery\",\n                   \"BatteryLoadingLevel\"])\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Power Total Live",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Power / W",
+            "axisPlacement": "left",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": 3600000,
+            "lineInterpolation": "stepBefore",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": 3600000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unitScale": true
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "diffuse_SW"
+            },
+            "properties": [
+              {
+                "id": "filterable",
+                "value": false
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Ratio Inserted/Calculated Power"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "diffuse_NE"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": []
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Ratio Inserted/Calculated Power"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_time"
+            },
+            "properties": [
+              {
+                "id": "custom.axisLabel",
+                "value": "Time"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PDC_SW"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Intensity_SW"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PDC_NE"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Intensity_NE"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PDC_TOT"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "Intensity_SW"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 4,
+      "maxDataPoints": 3800,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
+          },
+          "query": "import \"strings\"\nimport \"experimental\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Berlin\")\n\nfields1 = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\"]\nLIMIT_INCIDENCE = 0.035 // corresponds to > 2 degree incidence angle\nrES = 6 // time resolution\n\ninserted = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"CommonInverterData\" and contains(value: r._field, set: fields1))\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with PDC_SW: r.IDC * r.UDC,\n                             PDC_NE: r.IDC_2 * r.UDC_2,\n                             PDC_TOT: r.PDC_NE + r.PDC_SW}))\n  |> map(fn: (r) => ({r with PDC_TOT: r.PDC_NE + r.PDC_SW}))\n  |> keep(columns: [\"_time\", \"PDC_SW\", \"PDC_NE\", \"PDC_TOT\"])\n  |> experimental.unpivot()\n\nfields2 = [\"1_intensity_corr_area_eff\", \"1_incidence_ratio\", \"2_intensity_corr_area_eff\", \"2_incidence_ratio\"]\nsolar = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"SolarData\" and contains(value: r._field, set: fields2))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: \"1_intensity_corr_area_eff\", u: \"Intensity_SW\")}))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: \"2_intensity_corr_area_eff\", u: \"Intensity_NE\")}))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: \"1_incidence_ratio\", u: \"IncidenceRatio_SW\")}))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: \"2_incidence_ratio\", u: \"IncidenceRatio_NE\")}))\n  |> drop(columns: [\"_measurement\"])\n\ncombine = union(tables: [solar, inserted])\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration results ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with\n                      diffuse_SW: if r.IncidenceRatio_SW < LIMIT_INCIDENCE then r.PDC_SW / r.Intensity_SW\n                      else  r.PDC_SW / (r.IncidenceRatio_SW * r.Intensity_SW),\n                      diffuse_NE: if r.IncidenceRatio_NE < LIMIT_INCIDENCE then r.PDC_NE / r.Intensity_NE\n                      else  r.PDC_NE / (r.IncidenceRatio_NE * r.Intensity_NE),\n                      Intensity_SW: if r.IncidenceRatio_SW < LIMIT_INCIDENCE then 0.\n                      else r.IncidenceRatio_SW * r.Intensity_SW,\n                      Intensity_NE: if r.IncidenceRatio_NE < LIMIT_INCIDENCE then 0.\n                      else r.IncidenceRatio_NE * r.Intensity_NE\n                      }))\n  |> drop(columns: [\"_start\", \"_stop\", \"IncidenceRatio_NE\", \"IncidenceRatio_SW\"])\n  |> yield()",
+          "refId": "A"
+        }
+      ],
+      "title": "Inserted Power",
+      "transformations": [],
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [
+    "Production"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now/d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Power Live",
+  "uid": "e72b3f30-38d7-4655-b5d8-7ed416984abe",
+  "version": 20,
+  "weekStart": ""
+}

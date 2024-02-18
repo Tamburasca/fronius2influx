@@ -3,6 +3,10 @@
 //
 import "internal/debug"
 import "experimental"
+import "timezone"
+
+option location = timezone.location(name: "Europe/Berlin")
+
 reLU = (x) => if exists x then
                 if x > 0.0 then x
                 else 0.0
@@ -14,7 +18,7 @@ divByX = (tables=<-, x) =>
     tables
         |> map(fn: (r) => ({r with _value: r._value / x}))
 fieldsCommon = ["UDC", "IDC", "UDC_2", "IDC_2", "PAC"]
-rES = 6 // time resolution
+rES = 60 // time resolution
 
 from(bucket: "Fronius")
 //  |> range(start: today())
