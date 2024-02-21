@@ -7,7 +7,7 @@ import "timezone"
 
 option location = timezone.location(name: "Europe/Berlin")
 
-reLU = (x) => if exists x then
+ReLU = (x) => if exists x then
                 if x > 0.0 then x
                 else 0.0
               else debug.null(type: "float")
@@ -18,7 +18,7 @@ divByX = (tables=<-, x) =>
     tables
         |> map(fn: (r) => ({r with _value: r._value / x}))
 fieldsCommon = ["UDC", "IDC", "UDC_2", "IDC_2", "PAC"]
-rES = 60 // time resolution
+RES = 60 // time resolution
 
 from(bucket: "Fronius")
 //  |> range(start: today())
@@ -27,7 +27,7 @@ from(bucket: "Fronius")
                        (r["_measurement"] == "CommonInverterData" and contains(value: r._field, set: fieldsCommon)) or
                        (r["_measurement"] == "SmartMeter" and r["_field"] == "PowerReal_P_Sum")
     )
-  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration results ns
+  |> aggregateWindow(every: duration(v: RES * 1000000000), fn: mean) // duration results ns
   |> pivot(rowKey: ["_time"], columnKey: ["_field", "_measurement"], valueColumn: "_value")
   |> rename(columns: {
     PowerReal_P_Sum_SmartMeter: "PowerNet",
@@ -37,10 +37,10 @@ from(bucket: "Fronius")
                                            + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData,
 //                             PowerConsumed: r.PowerAC
 //                                            + r.PowerNet,
-                             NetFrom: reLU(x: r.PowerNet),
-                             NetTo: reLU(x: -r.PowerNet),
-                             BatteryCharged: reLU(x: r.Voltage_DC_Battery * r.Current_DC_Battery),
-                             BatteryDischarged: reLU(x: -r.Voltage_DC_Battery * r.Current_DC_Battery)
+                             NetFrom: ReLU(x: r.PowerNet),
+                             NetTo: ReLU(x: -r.PowerNet),
+                             BatteryCharged: ReLU(x: r.Voltage_DC_Battery * r.Current_DC_Battery),
+                             BatteryDischarged: ReLU(x: -r.Voltage_DC_Battery * r.Current_DC_Battery)
   }))
   |> map(fn: (r) => ({r with UsageIn: r.PowerSolarDC
                                       - r.NetTo,
@@ -67,5 +67,5 @@ from(bucket: "Fronius")
                    ])
   |> experimental.unpivot()
   |> cumulativeSum()
-  |> divByX(x: 3600000.0 / float(v: rES))
+  |> divByX(x: 3600000.0 / float(v: RES))
   |> yield()

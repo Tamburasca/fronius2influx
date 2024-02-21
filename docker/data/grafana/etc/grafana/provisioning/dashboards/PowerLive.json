@@ -453,30 +453,6 @@
                 }
               }
             ]
-          },
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "Intensity_SW"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
           }
         ]
       },
@@ -532,6 +508,6 @@
   "timezone": "",
   "title": "Power Live",
   "uid": "e72b3f30-38d7-4655-b5d8-7ed416984abe",
-  "version": 20,
+  "version": 21,
   "weekStart": ""
 }
