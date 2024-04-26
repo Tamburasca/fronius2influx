@@ -5,7 +5,7 @@ import "timezone"
 option location = timezone.location(name: "Europe/Berlin")
 
 fields1 = ["UDC", "IDC", "UDC_2", "IDC_2"]
-LIMIT_INCIDENCE = 0.035 // corresponds to > 2 degree incidence angle
+LIMIT_INCIDENCE = 0.087 // corresponds to >5 degree incidence angle
 rES = 6 // time resolution
 
 inserted = from(bucket: "Fronius")

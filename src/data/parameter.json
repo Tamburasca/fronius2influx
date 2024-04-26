@@ -1,7 +1,7 @@
 {
     "location": {
-        "latitude": 51.021259,
-        "longitude": 7.034212,
+        "latitude": 51.02253447379363,
+        "longitude": 7.035113220051732,
         "city": "Leverkusen",
         "region": "Germany",
         "timezone": "Europe/Berlin",
@@ -60,5 +60,5 @@
         "bucket": "Fronius"
     },
     "ignore_sun_down": true,
-    "debug": false
+    "debug": true
 }
