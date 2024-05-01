@@ -60,5 +60,5 @@
         "bucket": "Fronius"
     },
     "ignore_sun_down": true,
-    "debug": true
+    "debug": false
 }

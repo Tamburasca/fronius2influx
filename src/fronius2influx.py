@@ -261,7 +261,7 @@ class FroniusToInflux:
                 {
                     'measurement': 'SolarData',
                     'time': datetime.datetime.now(
-                        pytz.utc
+                        tz=pytz.utc
                     ).isoformat(
                         timespec='seconds'
                     ),
