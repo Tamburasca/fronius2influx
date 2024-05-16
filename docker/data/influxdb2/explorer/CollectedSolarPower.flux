@@ -1,6 +1,7 @@
 //
 // Collected Solar Power
 //
+
 fields = ["UDC", "IDC", "UDC_2", "IDC_2"]
 from(bucket: "Fronius")
   |> range(start: v.timeRangeStart, stop:v.timeRangeStop)

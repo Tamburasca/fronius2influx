@@ -194,7 +194,7 @@
           "refId": "A"
         }
       ],
-      "title": "Power Balance",
+      "title": "Aggregate Today",
       "transformations": [],
       "type": "stat"
     }
@@ -213,8 +213,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "PowerBalance",
+  "title": "Aggregate Today",
   "uid": "be87b738-bb4b-42f0-b212-17688e3c04c6",
-  "version": 7,
+  "version": 9,
   "weekStart": ""
 }

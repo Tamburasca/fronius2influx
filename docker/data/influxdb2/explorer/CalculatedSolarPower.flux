@@ -1,6 +1,7 @@
 //
 // Calculated Solar Power
 //
+
 import "strings"
 import "math"
 fields = ["1_intensity_corr_area_eff", "1_incidence_ratio", "2_intensity_corr_area_eff", "2_incidence_ratio"]

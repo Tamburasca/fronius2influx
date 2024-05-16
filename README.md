@@ -1,3 +1,29 @@
 # Fronius-To-InfluxDB
 
-tbd
+Request data from the Rest API of the Fronius inverter and store it in the 
+InfluxDB for visualization in Grafana. This tool collects the most basic 
+Fronius inverter data for a most basic setup. If your installation is 
+more advanced, some extra work will be reqired. 
+![Architecture](../pics/FroniusAPP.png)
+
+
+# Fronius endpoints used (Symo GEN24 6.0)
+This tool collects data from the following endpoints. 
+Adjust fronius host and path accordingly (see parameter.json)
+
+    "http://{0}{1}GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1".format(fronius_host, fronius_path)
+    "http://{0}{1}GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0".format(fronius_host, fronius_path)
+    "http://{0}{1}GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0".format(fronius_host, fronius_path)
+
+# Installation 
+The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 64 GB SD)
+with a Docker landscape. 
+
+    cd docker
+    docker-compose build
+    docker-compose up -d
+
+Please create the token files inside 
+[docker/data/secrets](https://github.com/Tamburasca/fronius2influx/blob/426322986a35a77106e53a78811118613b7ca29a/docker/data/secrets) 
+appropriately. The tokens for influxDB are visible after first start in the 
+docker-compose logs.
