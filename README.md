@@ -4,7 +4,7 @@ Request data from the Rest API of the Fronius inverter and store it in the
 InfluxDB for visualization in Grafana. This tool collects the most basic 
 Fronius inverter data for a most basic setup. If your installation is 
 more advanced, some extra work will be reqired. 
-![Architecture](pics/FroniusAPP.pdf)
+![Architecture](pics/FroniusAPP.jpg)
 
 
 # Fronius endpoints used (Symo GEN24 6.0)
