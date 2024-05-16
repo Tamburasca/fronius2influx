@@ -4,7 +4,7 @@ Request data from the Rest API of the Fronius inverter and store it in the
 InfluxDB for visualization in Grafana. This tool collects the most basic 
 Fronius inverter data for a most basic setup. If your installation is 
 more advanced, some extra work will be reqired. 
-![Architecture](../pics/FroniusAPP.png)
+![Architecture](pics/FroniusAPP.png)
 
 
 # Fronius endpoints used (Symo GEN24 6.0)
@@ -22,6 +22,12 @@ with a Docker landscape.
     cd docker
     docker-compose build
     docker-compose up -d
+
+# Visualization
+Grafana 
+[dashboards](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/grafana/etc/grafana/provisioning/dashboards) 
+and 
+[influxDB](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/influxdb2/explorer) flux statements are available. 
 
 Please create the token files inside 
 [docker/data/secrets](https://github.com/Tamburasca/fronius2influx/blob/426322986a35a77106e53a78811118613b7ca29a/docker/data/secrets) 
