@@ -37,12 +37,11 @@ data =
         |> range(start: yesterday, stop: today)
         |> filter(
             fn: (r) =>
-                r["_measurement"] == "Battery" and (r["_field"] == "Voltage_DC" or r["_field"]
-                        ==
-                        "Current_DC") or r["_measurement"] == "CommonInverterData" and contains(
+                r["_measurement"] == "Battery" and (r["_field"] == "Voltage_DC" or r["_field"] == "Current_DC")
+                or r["_measurement"] == "CommonInverterData" and contains(
                             value: r._field,
-                            set: fieldsCommon,
-                        ) or r["_measurement"] == "SmartMeter" and r["_field"] == "PowerReal_P_Sum",
+                            set: fieldsCommon)
+                or r["_measurement"] == "SmartMeter" and r["_field"] == "PowerReal_P_Sum",
         )
         |> aggregateWindow(every: duration(v: RES * 1000000000), fn: mean)
         |> pivot(rowKey: ["_time"], columnKey: ["_field", "_measurement"], valueColumn: "_value")
@@ -52,10 +51,8 @@ data =
         |> map(
             fn: (r) =>
                 ({r with
-                    PowerSolarDC:
-                        r.IDC_CommonInverterData * r.UDC_CommonInverterData
-                            +
-                            r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData,
+                    PowerSolarDC: r.IDC_CommonInverterData * r.UDC_CommonInverterData
+                                  + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData,
                     NetFrom: ReLU(x: r.PowerNet),
                     NetTo: ReLU(x: -r.PowerNet),
                     BatteryCharged: ReLU(x: r.Voltage_DC_Battery * r.Current_DC_Battery),
