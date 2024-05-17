@@ -32,3 +32,9 @@ Grafana
 [dashboards](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/grafana/etc/grafana/provisioning/dashboards) 
 and 
 [influxDB](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/influxdb2/explorer) flux statements are available. 
+
+# Caveat
+The current 
+[setup](https://github.com/Tamburasca/fronius2influx/blob/786517e091e8524b049d52de65e08ff9f0e4c716/src/data/parameter.json) 
+considers photovoltaic modules on either side of the rooftop.
+For other cases, adjust the FLUX statements (in Grafana) appropriately.
