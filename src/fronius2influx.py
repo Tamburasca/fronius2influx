@@ -26,7 +26,7 @@ __license__ = "BSD-3"
 __version__ = "0.1.0"
 __maintainer__ = "Dr. Ralf Antonius Timmermann"
 __email__ = "ralf.timmermann@gmx.de"
-__status__ = "QA"
+__status__ = "Prod"
 
 
 class WrongFroniusData(Exception):
@@ -53,7 +53,7 @@ class FroniusToInflux:
             parameter: Dict[Any, Any],
             endpoints: List[str],
             debug: bool = False
-    ):
+    ) -> None:
         self.client = client
         self.write = client.write_api(write_options=WriteOptions())
         self.endpoints = endpoints
@@ -162,6 +162,7 @@ class FroniusToInflux:
                     }
                 }
             ]
+
         elif collection is None and meter == "Smart Meter TS 65A-3":
             m = self.data['Body']['Data']
             return [
@@ -196,6 +197,7 @@ class FroniusToInflux:
                     }
                 }
             ]
+
         else:
             raise DataCollectionError("Unknown data collection type.")
 

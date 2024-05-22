@@ -28,10 +28,10 @@ appropriately. The tokens for read and write access to the influxDB are
 visible in the docker-compose logs after first initialization.
 
 # Visualization
-Grafana 
+available via Grafana 
 [dashboards](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/grafana/etc/grafana/provisioning/dashboards) 
 and 
-[influxDB](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/influxdb2/explorer) flux statements are available. 
+[influxDB flux](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/influxdb2/explorer). 
 
 # Caveat
 The current 
