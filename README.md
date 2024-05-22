@@ -16,7 +16,7 @@ Adjust fronius host and path accordingly (see parameter.json)
 # Installation 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 64 GB SD)
 inside a Docker infrastructure. 
-![Architecture]https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP.png)
+![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP.png)
 
     cd docker
     docker-compose build
