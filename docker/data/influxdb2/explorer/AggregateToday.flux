@@ -1,5 +1,5 @@
 //
-// PowerBalance
+// AggregateToday
 //
 
 import "internal/debug"

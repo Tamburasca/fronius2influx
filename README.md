@@ -1,7 +1,7 @@
 # Fronius-To-InfluxDB
 
-Request data from a Fronius inverter's Rest API and store it in the 
-InfluxDB for visualization in Grafana. This application collects the most basic 
+Request data from Fronius inverter's Rest API and store it in the 
+InfluxDB v2.7 for visualization in Grafana. This application collects the most basic 
 Fronius inverter data serving for a basic setup. If your installation is 
 more advanced, some extra work may be reqired, though. 
 
@@ -15,7 +15,7 @@ Adjust fronius host and path accordingly (see parameter.json)
 
 # Installation 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 64 GB SD)
-inside a Docker infrastructure. 
+inside a Docker infrastructure, comprising three containers. 
 ![Architecture](https://github.com/Tamburasca/fronius2influx/blob/7738c65d44107b43a67efc21f61464c6fd22939d/pics/FroniusAPP.png)
 
     cd docker
@@ -34,7 +34,6 @@ and
 [influxDB flux](https://github.com/Tamburasca/fronius2influx/blob/833969887f417cd0a51fba7c583c9fab22594d61/docker/data/influxdb2/explorer). 
 
 # Caveat
-The current 
-[setup](https://github.com/Tamburasca/fronius2influx/blob/786517e091e8524b049d52de65e08ff9f0e4c716/src/data/parameter.json) 
-considers photovoltaic modules on either side of the rooftop.
-For other cases, adjust the FLUX statements (in Grafana) appropriately.
+The current [setup](https://github.com/Tamburasca/fronius2influx/blob/786517e091e8524b049d52de65e08ff9f0e4c716/src/data/parameter.json) considers photovoltaic modules on either side of the 
+rooftop. For other cases, adjust the FLUX statements (in Grafana) appropriately, i.e.
+the setup is not generic.

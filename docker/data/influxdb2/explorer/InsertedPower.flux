@@ -25,24 +25,20 @@ solar = from(bucket: "Fronius")
   |> range(start: v.timeRangeStart, stop:v.timeRangeStop)
   |> filter(fn: (r) =>
     r._measurement == "SolarData" and contains(value: r._field, set: fields2))
-  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: "1_intensity_corr_area_eff", u: "Intensity_SW")}))
-  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: "2_intensity_corr_area_eff", u: "Intensity_NE")}))
-  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: "1_incidence_ratio", u: "IncidenceRatio_SW")}))
-  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field, t: "2_incidence_ratio", u: "IncidenceRatio_NE")}))
   |> drop(columns: ["_measurement"])
 
 combine = union(tables: [solar, inserted])
   |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration results ns
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> map(fn: (r) => ({r with
-                      diffuse_SW: if r.IncidenceRatio_SW < LIMIT_INCIDENCE then r.PDC_SW / r.Intensity_SW
-                      else  r.PDC_SW / (r.IncidenceRatio_SW * r.Intensity_SW),
-                      diffuse_NE: if r.IncidenceRatio_NE < LIMIT_INCIDENCE then r.PDC_NE / r.Intensity_NE
-                      else  r.PDC_NE / (r.IncidenceRatio_NE * r.Intensity_NE),
-                      Intensity_SW: if r.IncidenceRatio_SW < LIMIT_INCIDENCE then 0.
-                      else r.IncidenceRatio_SW * r.Intensity_SW,
-                      Intensity_NE: if r.IncidenceRatio_NE < LIMIT_INCIDENCE then 0.
-                      else r.IncidenceRatio_NE * r.Intensity_NE
+                      diffuse_SW: if r["1_incidence_ratio"] < LIMIT_INCIDENCE then r.PDC_SW / r["1_intensity_corr_area_eff"]
+                      else  r.PDC_SW / (r["1_incidence_ratio"] * r["1_intensity_corr_area_eff"]),
+                      diffuse_NE: if r["2_incidence_ratio"] < LIMIT_INCIDENCE then r.PDC_NE / r["2_intensity_corr_area_eff"]
+                      else  r.PDC_NE / (r["2_incidence_ratio"] * r["2_intensity_corr_area_eff"]),
+                      Intensity_SW: if r["1_incidence_ratio"] < LIMIT_INCIDENCE then 0.
+                      else r["1_incidence_ratio"] * r["1_intensity_corr_area_eff"],
+                      Intensity_NE: if r["2_incidence_ratio"] < LIMIT_INCIDENCE then 0.
+                      else r["2_incidence_ratio"] * r["2_intensity_corr_area_eff"]
                       }))
-  |> drop(columns: ["_start", "_stop", "IncidenceRatio_NE", "IncidenceRatio_SW"])
+  |> drop(columns: ["_start", "_stop", "1_intensity_corr_area_eff", "1_incidence_ratio", "2_intensity_corr_area_eff", "2_incidence_ratio"])
   |> yield()

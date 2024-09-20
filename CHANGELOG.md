@@ -1,7 +1,8 @@
 # Changelog 
-## 0.1.x (2024-xx-xx)
+## 0.x.x (2024-xx-xx)
 ### Added
 ### Changed
+- Flux statements for InsertedPower panel in PowerLive dashboard (got faster!)
 ### Fixed
 ### Deprecated
 ### Removed

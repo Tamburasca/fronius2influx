@@ -19,10 +19,10 @@ import logging
 from fronius_aux import flatten_json, get_secret
 
 __author__ = "Dr. Ralf Antonius Timmermann"
-__copyright__ = ("Copyright (c) 2024, Dr. Ralf Antonius Timmermann "
+__copyright__ = ("Copyright (c) 2023-2024, Dr. Ralf Antonius Timmermann "
                  "All rights reserved.")
 __credits__ = ""
-__license__ = "BSD-3"
+__license__ = "BSD-3-Clause"
 __version__ = "0.1.0"
 __maintainer__ = "Dr. Ralf Antonius Timmermann"
 __email__ = "ralf.timmermann@gmx.de"

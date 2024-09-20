@@ -4,7 +4,6 @@ import "timezone"
 import "date"
 
 option task = {name: "downsample", every: 1d, offset: 1h}
-
 option location = timezone.location(name: "Europe/Berlin")
 
 ReLU = (x) =>
