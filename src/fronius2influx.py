@@ -28,6 +28,10 @@ __maintainer__ = "Dr. Ralf Antonius Timmermann"
 __email__ = "ralf.timmermann@gmx.de"
 __status__ = "Prod"
 
+# Logging Format
+MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - "
+                 "%(lineno)s - %(funcName)s()\t%(message)s")
+
 
 class WrongFroniusData(Exception):
     pass
@@ -43,7 +47,6 @@ class DataCollectionError(Exception):
 
 class FroniusToInflux:
     BACKOFF_INTERVAL = 5
-    IGNORE_SUN_DOWN = False
     SOLAR_CONSTANT = 1_361  # W m⁻²
     A = 0.00014  # constant / m⁻¹
 
@@ -53,7 +56,7 @@ class FroniusToInflux:
             parameter: Dict[Any, Any],
             endpoints: List[str],
             debug: bool = False
-    ) -> None:
+    ):
         self.client = client
         self.write = client.write_api(write_options=WriteOptions())
         self.endpoints = endpoints
@@ -66,8 +69,9 @@ class FroniusToInflux:
             timezone=parameter['location']['timezone']
         )
         self.tz = pytz.timezone(parameter['location']['timezone'])
-        self.data: Dict[Any, Any] = dict()
         self.debug = debug
+        self.data: Dict[Any, Any] = dict()
+        self.ignore_sun_down: bool = False
 
     def get_float_or_zero(
             self,
@@ -271,7 +275,7 @@ class FroniusToInflux:
                 }
             ]
         else:
-            if not self.IGNORE_SUN_DOWN:
+            if not self.ignore_sun_down:
                 raise SunIsDown
             else:
                 return []
@@ -326,29 +330,26 @@ class FroniusToInflux:
             exit(0)
 
 
-if __name__ == "__main__":
+def main() -> None:
     with open('data/parameter.json', 'r') as f:
         parameter = json.load(f)
 
-    # Logging Format
-    MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - "
-                     "%(lineno)s - %(funcName)s()\t%(message)s")
-    LOGGING_LEVEL: str = "DEBUG" if parameter['debug'] else "INFO"
+    logging_level: str = "DEBUG" if parameter['debug'] else "INFO"
     logging.basicConfig(format=MYFORMAT,
-                        level=getattr(logging, LOGGING_LEVEL),
+                        level=getattr(logging, logging_level),
                         datefmt="%Y-%m-%d %H:%M:%S")
 
-    INFLUXDB_HOST = os.getenv('INFLUXDB_HOST',
+    influxdb_host = os.getenv('INFLUXDB_HOST',
                               parameter['influxdb']['host'])
-    INFLUXDB_PORT = int(os.getenv('INFLUXDB_PORT',
+    influxdb_port = int(os.getenv('INFLUXDB_PORT',
                                   parameter['influxdb']['port']))
-    INFLUXDB_TOKEN = os.getenv('INFLUXDB_TOKEN')  # if run outside Docker
+    # default applies, if runs outside Docker
     influxdb_token_write = get_secret('INFLUXDB_TOKEN_FILE',
-                                      INFLUXDB_TOKEN)
+                                      os.getenv('INFLUXDB_TOKEN'))
 
     client = InfluxDBClient(
-        url="http://{0}:{1}".format(INFLUXDB_HOST,
-                                    INFLUXDB_PORT),
+        url="http://{0}:{1}".format(influxdb_host,
+                                    influxdb_port),
         token=influxdb_token_write,
         org=parameter['influxdb']['organization'],
         verify_ssl=parameter['influxdb']['verify_ssl']
@@ -379,5 +380,9 @@ if __name__ == "__main__":
         endpoints=endpoints,
         debug=parameter['debug']
     )
-    z.IGNORE_SUN_DOWN = parameter['ignore_sun_down']
+    z.ignore_sun_down = parameter['ignore_sun_down']
     z.run()
+
+
+if __name__ == "__main__":
+    main()

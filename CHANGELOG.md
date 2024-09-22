@@ -1,8 +1,16 @@
-# Changelog 
-## 0.x.x (2024-xx-xx)
+# Changelog
+## 0.x.x (20xx-xx-xx)
+### Added
+### Changed
+### Fixed
+### Deprecated
+### Removed
+### Security
+## 0.1.1 (2024-09-22)
 ### Added
 ### Changed
 - Flux statements for InsertedPower panel in PowerLive dashboard (got faster!)
+- Minor corrections to python code
 ### Fixed
 ### Deprecated
 ### Removed
