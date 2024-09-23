@@ -1,4 +1,4 @@
-influxdb-client>=1.39.0
-astral>=3.2
-requests>=2.31.0
-pytz>=2023.3.post1
+influxdb-client==1.46.0
+astral==3.2
+requests==2.32.3
+pytz==2024.2

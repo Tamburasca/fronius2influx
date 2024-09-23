@@ -287,7 +287,7 @@ class FroniusToInflux:
         try:
             while True:
                 try:
-                    collected_data = []
+                    collected_data: List[Dict[str, Any], ...] = []
                     for url in self.endpoints:
                         response = get(url)
                         self.data = response.json()
