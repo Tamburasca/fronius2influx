@@ -58,7 +58,7 @@ services:
     secrets:
       - influxdb_token_write
     depends_on:
-        - fronius_influxdb2
+      - fronius_influxdb2
     environment:
       INFLUXDB_HOST: *database-container-name
       INFLUXDB_PORT: 8086

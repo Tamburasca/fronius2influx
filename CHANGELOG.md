@@ -6,11 +6,14 @@
 ### Deprecated
 ### Removed
 ### Security
-## 0.1.1 (2024-09-22)
+## 0.1.1 (2024-09-24)
 ### Added
 ### Changed
 - Flux statements for InsertedPower panel in PowerLive dashboard (got faster!)
 - Minor corrections to python code
+- client.write_api(...) flush scheduler to 1 sec (default)
+- typing
+- requirements updated
 ### Fixed
 ### Deprecated
 ### Removed

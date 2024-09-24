@@ -45,7 +45,7 @@ class DataCollectionError(Exception):
     pass
 
 
-class FroniusToInflux:
+class FroniusToInflux(object):
     BACKOFF_INTERVAL = 5
     SOLAR_CONSTANT = 1_361  # W m⁻²
     A = 0.00014  # constant / m⁻¹
@@ -58,7 +58,9 @@ class FroniusToInflux:
             debug: bool = False
     ):
         self.client = client
-        self.write = client.write_api(write_options=WriteOptions())
+        self.write = client.write_api(
+            write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
+        )
         self.endpoints = endpoints
         self.parameter = parameter
         self.location = LocationInfo(
@@ -78,14 +80,15 @@ class FroniusToInflux:
             value: str
     ) -> float:
         try:
-            internal_data: Dict[Any, Any] = self.data['Body']['Data']
+            internal_data: Dict[str, Dict] = self.data['Body']['Data']
         except KeyError:
             raise WrongFroniusData('Response structure is not healthy.')
+
         return 0. if 'Value' not in internal_data.get(value, {}) \
                      or internal_data.get(value, {}).get('Value') is None \
             else float(internal_data.get(value)['Value'])
 
-    def translate_response(self) -> List[Dict]:
+    def translate_response(self) -> List[Dict[str, str | Dict]]:
         collection = self.data['Head']['RequestArguments'].get('DataCollection')
         timestamp = self.data['Head']['Timestamp']
         try:
@@ -205,7 +208,7 @@ class FroniusToInflux:
         else:
             raise DataCollectionError("Unknown data collection type.")
 
-    def sun_parameter(self):
+    def sun_parameter(self) -> List[Dict[str, str | Dict]]:
         altitude = self.parameter["location"]["altitude"]["value"]
         el = elevation(self.location.observer)
         if el > 0:
@@ -281,18 +284,17 @@ class FroniusToInflux:
                 return []
 
     def run(self) -> None:
-        flag_sun_is_down = False
-        flag_connection = False
-        flag_exception = False
+        flag_sun_is_down: bool = False
+        flag_connection: bool = False
+        flag_exception: bool = False
         try:
             while True:
+                collected_data: List[Dict[str, str | Dict]] = list()
                 try:
-                    collected_data: List[Dict[str, Any], ...] = []
                     for url in self.endpoints:
-                        response = get(url)
-                        self.data = response.json()
+                        self.data = get(url).json()
                         collected_data.extend(self.translate_response())
-                    # add solar parameter
+                    # amend solar parameter
                     collected_data.extend(self.sun_parameter())
                     if self.debug:
                         print(collected_data)
@@ -322,7 +324,7 @@ class FroniusToInflux:
                         logging.error("Exception: {}".format(e))
                         logging.warning("Waiting for exception to suspend ...")
                         flag_exception = True
-                    self.data = {}
+                    self.data = dict()
                     sleep(10)
 
         except KeyboardInterrupt:
