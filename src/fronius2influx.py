@@ -53,12 +53,6 @@ class FroniusEndpoints(
     # "http://{0}{1}GetInverterRealtimeData.cgi"
     # "?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
 
-    def __new__(
-            cls,
-            value
-    ) -> Enum:
-        return str.__new__(cls, str)
-
     @classmethod
     def finalize(
             cls,
