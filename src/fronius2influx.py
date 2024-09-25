@@ -57,9 +57,7 @@ class FroniusEndpoints(
             cls,
             value
     ) -> Enum:
-        obj = str.__new__(cls, str)
-        obj._value_ = value
-        return obj
+        return str.__new__(cls, str)
 
     @classmethod
     def finalize(
