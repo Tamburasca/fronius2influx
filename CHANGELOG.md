@@ -14,6 +14,7 @@
 - client.write_api(...) flush scheduler to 1 sec (default)
 - typing
 - requirements updated
+- hack on Enum 
 ### Fixed
 ### Deprecated
 ### Removed
