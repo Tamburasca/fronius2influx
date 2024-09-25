@@ -3,8 +3,9 @@
 
 import datetime
 import json
+from enum import Enum, EnumMeta
 from time import sleep
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Generator
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
@@ -33,16 +34,51 @@ MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
 
 
-class WrongFroniusData(Exception):
-    pass
+# this is a cool hack on EnumMeta, just for kicks and testing!
+class _M(EnumMeta):
+    def __iter__(self) -> Generator[None, str, None]:
+        for member in super().__iter__():
+            yield ("http://{0}{1}" + member.value).format(*member.ha)
 
 
-class SunIsDown(Exception):
-    pass
+class FroniusEndpoints(
+    str,
+    Enum,
+    metaclass=_M
+):
+    FIRST = ("GetInverterRealtimeData.cgi"
+             "?Scope=Device&DataCollection=CommonInverterData&DeviceId=1")
+    SECOND = "GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
+    THIRD = "GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
+    # "http://{0}{1}GetInverterRealtimeData.cgi"
+    # "?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
+
+    def __new__(
+            cls,
+            value
+    ) -> Enum:
+        obj = str.__new__(cls, str)
+        obj._value_ = value
+        return obj
+
+    @classmethod
+    def finalize(
+            cls,
+            *,
+            host,
+            application
+    ) -> Enum:
+        cls.ha = [host, application]
+        return cls
 
 
-class DataCollectionError(Exception):
-    pass
+class WrongFroniusData(Exception): ...
+
+
+class SunIsDown(Exception): ...
+
+
+class DataCollectionError(Exception): ...
 
 
 class FroniusToInflux(object):
@@ -357,24 +393,10 @@ def main() -> None:
         verify_ssl=parameter['influxdb']['verify_ssl']
     )
 
-    fronius_host = parameter['server']['host']
-    fronius_path = parameter['server']['path']
-    endpoints = [
-        "http://{0}{1}GetInverterRealtimeData.cgi"
-        "?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
-        .format(fronius_host,
-                fronius_path),
-        # "http://{0}{1}GetInverterRealtimeData.cgi"
-        # "?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
-        # .format(fronius_host,
-        #         fronius_path),
-        "http://{0}{1}GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
-        .format(fronius_host,
-                fronius_path),
-        "http://{0}{1}GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
-        .format(fronius_host,
-                fronius_path)
-    ]
+    endpoints = FroniusEndpoints.finalize(
+        host=parameter['server']['host'],
+        application=parameter['server']['application']
+    )
 
     z = FroniusToInflux(
         client=client,

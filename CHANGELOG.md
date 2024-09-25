@@ -6,7 +6,7 @@
 ### Deprecated
 ### Removed
 ### Security
-## 0.1.1 (2024-09-24)
+## 0.1.1 (2024-09-25)
 ### Added
 ### Changed
 - Flux statements for InsertedPower panel in PowerLive dashboard (got faster!)
