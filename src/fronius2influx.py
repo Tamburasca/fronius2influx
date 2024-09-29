@@ -10,35 +10,38 @@ from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, HTTPError
 import math
 import pytz
 from sys import exit
 import os
 import logging
 # internal imports
-from fronius_aux import flatten_json, get_secret
-
-__author__ = "Dr. Ralf Antonius Timmermann"
-__copyright__ = ("Copyright (c) 2023-2024, Dr. Ralf Antonius Timmermann "
-                 "All rights reserved.")
-__credits__ = ""
-__license__ = "BSD-3-Clause"
-__version__ = "0.1.1"
-__maintainer__ = "Dr. Ralf Antonius Timmermann"
-__email__ = "ralf.timmermann@gmx.de"
-__status__ = "Prod"
+from src.fronius_aux import flatten_json, get_secret
 
 # Logging Format
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
 
-
-# this is a cool hack on EnumMeta, just for kicks and testing!
+'''
+cool hack on EnumMeta, just for kicks and pushing it to the limits!
+a list comprehension would of course solve it better:
+endpoints = [
+("http://{0}{1}" + Fronius2Endpoints.value).format(
+    parameter['server']['host'],
+    parameter['server']['application'] 
+)
+    for member in FroniusEndpoints
+]
+'''
 class _M(EnumMeta):
     def __iter__(self) -> Generator[None, str, None]:
         for member in super().__iter__():
-            yield ("http://{0}{1}" + member.value).format(*member.ha)
+            yield "http://{}{}{}".format(
+                member.kwargs['host'],
+                member.kwargs['application'],
+                member.value
+            )
 
 
 class FroniusEndpoints(
@@ -54,13 +57,8 @@ class FroniusEndpoints(
     # "?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
 
     @classmethod
-    def finalize(
-            cls,
-            *,
-            host,
-            application
-    ) -> Enum:
-        cls.ha = [host, application]
+    def finalize(cls, **kwargs) -> Enum:
+        cls.kwargs = kwargs
         return cls
 
 
@@ -320,7 +318,9 @@ class FroniusToInflux(object):
                 collected_data: List[Dict[str, str | Dict]] = list()
                 try:
                     for url in self.endpoints:
-                        self.data = get(url).json()
+                        result = get(url)
+                        result.raise_for_status()  # HTTP status
+                        self.data = result.json()
                         collected_data.extend(self.translate_response())
                     # amend solar parameter
                     collected_data.extend(self.sun_parameter())
@@ -342,15 +342,21 @@ class FroniusToInflux(object):
                         logging.warning("Waiting for sun to rise ...")
                         flag_sun_is_down = True
                     sleep(60)
-                except ConnectionError:
+                except (ConnectionError, HTTPError) as e:
                     if not flag_connection:
-                        logging.warning("Waiting for connection ...")
+                        logging.error("Connection or HTTP error: {}".format(e))
+                        logging.warning(
+                            "Please check your Fronius Inverter. "
+                            "Waiting 10 s for exception to suspend ..."
+                        )
                         flag_connection = True
                     sleep(10)
                 except Exception as e:
                     if not flag_exception:
-                        logging.error("Exception: {}".format(e))
-                        logging.warning("Waiting for exception to suspend ...")
+                        logging.error("Unknown exception: {}".format(e))
+                        logging.warning(
+                            "Waiting 10 s for exception to suspend ..."
+                        )
                         flag_exception = True
                     self.data = dict()
                     sleep(10)
@@ -361,7 +367,10 @@ class FroniusToInflux(object):
 
 
 def main() -> None:
-    with open('data/parameter.json', 'r') as f:
+    parameter_file = "{}/data/parameter.json".format(
+        os.path.dirname(os.path.realpath(__file__))
+    )
+    with open(parameter_file, 'r') as f:
         parameter = json.load(f)
 
     logging_level: str = "DEBUG" if parameter['debug'] else "INFO"

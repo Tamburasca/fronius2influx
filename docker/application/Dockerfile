@@ -14,8 +14,7 @@ RUN pip install --upgrade pip && \
     pip install -r src/requirements.txt && \
     rm -f src/requirements.txt
 
-WORKDIR /Fronius/src/
-ENV PYTHONPATH .
+ENV PYTHONPATH=.
 # command to run on container start
 # python [-u] forces the stdout and stderr streams to be unbuffered.
-ENTRYPOINT python -u fronius2influx.py
+ENTRYPOINT python -u src/fronius2influx.py
