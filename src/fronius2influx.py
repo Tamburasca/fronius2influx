@@ -27,7 +27,7 @@ MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - "
 cool hack on EnumMeta, just for kicks and pushing it to the limits!
 a list comprehension would of course solve it better:
 endpoints = [
-("http://{0}{1}" + Fronius2Endpoints.value).format(
+("http://{0}{1}" + member.value).format(
     parameter['server']['host'],
     parameter['server']['application'] 
 )
@@ -53,8 +53,7 @@ class FroniusEndpoints(
              "?Scope=Device&DataCollection=CommonInverterData&DeviceId=1")
     SECOND = "GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
     THIRD = "GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
-    # "http://{0}{1}GetInverterRealtimeData.cgi"
-    # "?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
+    # "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
 
     @classmethod
     def finalize(cls, **kwargs) -> Enum:
