@@ -6,6 +6,14 @@
 ### Deprecated
 ### Removed
 ### Security
+## 0.2.0 (2024-10-27)
+### Added
+- Wallbox - Wattpilot implented for writing to influxdb
+### Changed
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 0.1.1 (2024-09-25)
 ### Added
 ### Changed

@@ -1,31 +1,56 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
+"""
+OS environmental variable 'MOSQUITTO_CIPHER' (required) containing the cipher
+key to decrypt the wattpilot access password. Run following commands in python3
+>>>from cryptography.fernet import Fernet
+>>>mosquitto_cipher = Fernet.generate_key() # if key exists, skip this line
+>>>cipher_suite = Fernet(mosquitto_cipher) # key in binary
+>>>application_key_encrypt = cipher_suite.encrypt(b'password')
+"""
 
 import datetime
 import json
+import math
+import pytz
+import os
+import logging
 from enum import Enum, EnumMeta
 from time import sleep
-from typing import Any, Dict, List, Generator
+from typing import Any, Generator
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
 from requests.exceptions import ConnectionError, HTTPError
-import math
-import pytz
-from sys import exit
-import os
-import logging
 # internal imports
-from src.fronius_aux import flatten_json, get_secret
+from src.fronius_aux import flatten_json, get_secret, pw
+from src.wattpilot_read import wattpilot_get
+from src.wattpilot import Wattpilot
 
 # Logging Format
-MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - "
+MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
 
+MOSQUITTO_CIPHER = os.environ.get('MOSQUITTO_CIPHER')
+WALLBOX_TOKEN = os.environ.get('WALLBOX_TOKEN') # default
+
+
+class WrongFroniusData(Exception): ...
+
+
+class SunIsDown(Exception): ...
+
+
+class DataCollectionError(Exception): ...
+
+
+class DeviceStatus(Exception): ...
+
+
 '''
-cool hack on EnumMeta, just for kicks and pushing it to the limits!
-a list comprehension would of course solve it better:
+Cool hack on EnumMeta, just for kicks, pushing it to the limits!
+A list comprehension would solve it better of course, such as:
 endpoints = [
 ("http://{0}{1}" + member.value).format(
     parameter['server']['host'],
@@ -49,25 +74,15 @@ class FroniusEndpoints(
     Enum,
     metaclass=_M
 ):
-    FIRST = ("GetInverterRealtimeData.cgi"
-             "?Scope=Device&DataCollection=CommonInverterData&DeviceId=1")
-    SECOND = "GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
-    THIRD = "GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
+    INVERTER_REAL_TIME_DATA = "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
+    STORAGE_REAL_TIME_DATA = "GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
+    METER_REAL_TIME_DATA = "GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
     # "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
 
     @classmethod
-    def finalize(cls, **kwargs) -> Enum:
+    def get_endpoint(cls, **kwargs) -> Enum:
         cls.kwargs = kwargs
         return cls
-
-
-class WrongFroniusData(Exception): ...
-
-
-class SunIsDown(Exception): ...
-
-
-class DataCollectionError(Exception): ...
 
 
 class FroniusToInflux(object):
@@ -77,9 +92,11 @@ class FroniusToInflux(object):
 
     def __init__(
             self,
+            *,
             client: InfluxDBClient,
-            parameter: Dict[Any, Any],
-            endpoints: List[str],
+            parameter: dict[Any, Any],
+            endpoints: list[str],
+            wallbox: Wattpilot,
             debug: bool = False
     ):
         self.client = client
@@ -88,6 +105,7 @@ class FroniusToInflux(object):
         )
         self.endpoints = endpoints
         self.parameter = parameter
+        self.wallbox = wallbox
         self.location = LocationInfo(
             name=parameter['location']['city'],
             region=parameter['location']['region'],
@@ -97,7 +115,7 @@ class FroniusToInflux(object):
         )
         self.tz = pytz.timezone(parameter['location']['timezone'])
         self.debug = debug
-        self.data: Dict[Any, Any] = dict()
+        self.data: dict[Any, Any] = dict()
         self.ignore_sun_down: bool = False
 
     def get_float_or_zero(
@@ -105,7 +123,7 @@ class FroniusToInflux(object):
             value: str
     ) -> float:
         try:
-            internal_data: Dict[str, Dict] = self.data['Body']['Data']
+            internal_data: dict[str, dict] = self.data['Body']['Data']
         except KeyError:
             raise WrongFroniusData('Response structure is not healthy.')
 
@@ -113,7 +131,7 @@ class FroniusToInflux(object):
                      or internal_data.get(value, {}).get('Value') is None \
             else float(internal_data.get(value)['Value'])
 
-    def translate_response(self) -> List[Dict[str, str | Dict]]:
+    def translate_response(self) -> list[dict[str, str | dict]]:
         collection = self.data['Head']['RequestArguments'].get('DataCollection')
         timestamp = self.data['Head']['Timestamp']
         try:
@@ -233,7 +251,7 @@ class FroniusToInflux(object):
         else:
             raise DataCollectionError("Unknown data collection type.")
 
-    def sun_parameter(self) -> List[Dict[str, str | Dict]]:
+    def sun_parameter(self) -> list[dict[str, str | dict]]:
         altitude = self.parameter["location"]["altitude"]["value"]
         el = elevation(self.location.observer)
         if el > 0:
@@ -252,7 +270,7 @@ class FroniusToInflux(object):
             )
             # Direct beam intensity / W m⁻²
             intens = self.SOLAR_CONSTANT * air_mass_attenuation
-            result: Dict[str, float | None] = {
+            result: dict[str, float | None] = {
                 "sun_elevation": el,
                 "sun_azimuth": az,
                 "air_mass": air_mass_revised,
@@ -314,7 +332,7 @@ class FroniusToInflux(object):
         flag_exception: bool = False
         try:
             while True:
-                collected_data: List[Dict[str, str | Dict]] = list()
+                collected_data: list[dict[str, str | dict]] = list()
                 try:
                     for url in self.endpoints:
                         result = get(url)
@@ -323,6 +341,11 @@ class FroniusToInflux(object):
                         collected_data.extend(self.translate_response())
                     # amend solar parameter
                     collected_data.extend(self.sun_parameter())
+                    # amend wallbox data
+                    if self.parameter['wallbox']['active']:
+                        collected_data.extend(
+                            wattpilot_get(wallbox=self.wallbox)
+                        )
                     if self.debug:
                         print(collected_data)
                     else:
@@ -341,7 +364,7 @@ class FroniusToInflux(object):
                         logging.warning("Waiting for sun to rise ...")
                         flag_sun_is_down = True
                     sleep(60)
-                except (ConnectionError, HTTPError) as e:
+                except (ConnectionError, HTTPError, DeviceStatus) as e:
                     if not flag_connection:
                         logging.error("Connection or HTTP error: {}".format(e))
                         logging.warning(
@@ -362,7 +385,9 @@ class FroniusToInflux(object):
 
         except KeyboardInterrupt:
             print("Finishing. Goodbye!")
-            exit(0)
+            os._exit(os.EX_OK)
+        except (Exception,):
+            os._exit(os.EX_OSERR)
 
 
 def main() -> None:
@@ -376,6 +401,7 @@ def main() -> None:
     logging.basicConfig(format=MYFORMAT,
                         level=getattr(logging, logging_level),
                         datefmt="%Y-%m-%d %H:%M:%S")
+    logging.getLogger("Rx").setLevel(logging.INFO)
 
     influxdb_host = os.getenv('INFLUXDB_HOST',
                               parameter['influxdb']['host'])
@@ -393,15 +419,27 @@ def main() -> None:
         verify_ssl=parameter['influxdb']['verify_ssl']
     )
 
-    endpoints = FroniusEndpoints.finalize(
+    endpoints = FroniusEndpoints.get_endpoint(
         host=parameter['server']['host'],
         application=parameter['server']['application']
     )
+
+    wallbox: Wattpilot = None
+    if parameter['wallbox']['active']:
+        wallbox_token = get_secret('WALLBOX_TOKEN_FILE',
+                                   WALLBOX_TOKEN)
+        wallbox = Wattpilot(
+            ip=parameter['wallbox']['host'],
+            password=pw(wallbox_token, MOSQUITTO_CIPHER),
+            auto_reconnect=True
+        )
+        wallbox.connect()
 
     z = FroniusToInflux(
         client=client,
         parameter=parameter,
         endpoints=endpoints,
+        wallbox=wallbox,
         debug=parameter['debug']
     )
     z.ignore_sun_down = parameter['ignore_sun_down']

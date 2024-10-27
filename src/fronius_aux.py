@@ -1,5 +1,6 @@
-from typing import Dict, Any
 import os
+from typing import Dict, Any
+from cryptography.fernet import Fernet
 
 
 def flatten_json(y) -> Dict[str, Any]:
@@ -42,3 +43,21 @@ def get_secret(
         with open(value) as f:
             return f.read()
     return value
+
+
+def pw(
+        pw_encoded: str,
+        cipher: str
+) -> str:
+    """
+    decrypts application key via cryptography.Fernet()
+    :param pw_encoded: string
+        encoded application key
+    :param cipher: string
+        decrypt key
+    :return:
+        str: decoded application key
+    """
+    if cipher is None:
+        raise Exception("Please set the environment variable MOSQUITTO_CIPHER")
+    return Fernet(str.encode(cipher)).decrypt(str.encode(pw_encoded)).decode()

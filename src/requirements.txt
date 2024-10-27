@@ -2,3 +2,5 @@ influxdb-client==1.46.0
 astral==3.2
 requests==2.32.3
 pytz==2024.2
+websocket-client==1.8.0
+cryptography==43.0.3

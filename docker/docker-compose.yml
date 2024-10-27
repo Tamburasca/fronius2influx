@@ -57,12 +57,14 @@ services:
     restart: unless-stopped
     secrets:
       - influxdb_token_write
+      - wallbox_token
     depends_on:
       - fronius_influxdb2
     environment:
       INFLUXDB_HOST: *database-container-name
       INFLUXDB_PORT: 8086
       INFLUXDB_TOKEN_FILE: /run/secrets/influxdb_token_write
+      WALLBOX_TOKEN_FILE: /run/secrets/wallbox_token
 
 secrets:
     influxdb_init_password:
@@ -71,6 +73,8 @@ secrets:
         file: data/secrets/influxdb_token_write
     influxdb_token_read:
         file: data/secrets/influxdb_token_read
+    wallbox_token:
+        file: data/secrets/wallbox_token
 
 networks:
     fronius_net:

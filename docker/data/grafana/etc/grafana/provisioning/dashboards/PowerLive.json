@@ -264,7 +264,7 @@
               "viz": false
             },
             "insertNulls": 3600000,
-            "lineInterpolation": "stepBefore",
+            "lineInterpolation": "stepAfter",
             "lineStyle": {
               "fill": "solid"
             },
@@ -273,7 +273,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "always",
             "spanNulls": 3600000,
             "stacking": {
               "group": "A",
@@ -568,6 +568,6 @@
   "timezone": "",
   "title": "PowerLive",
   "uid": "e72b3f30-38d7-4655-b5d8-7ed416984abe",
-  "version": 38,
+  "version": 39,
   "weekStart": ""
 }

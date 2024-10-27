@@ -52,6 +52,10 @@
         "host": "Fronius-34243758",
         "application": "/solar_api/v1/"
     },
+    "wallbox": {
+        "host": "Wattpilot-91025483",
+        "active": true
+    },
     "influxdb": {
         "host": "localhost",
         "port" : 8086,
