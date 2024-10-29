@@ -29,7 +29,7 @@ visible in the docker-compose logs after first initialization.
 
 # Visualization
 available via Grafana 
-[dashboards](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/grafana/etc/grafana/provisioning) 
+[dashboards](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/grafana/etc/grafana/provisioning/dashboards) 
 and 
 [influxDB flux](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/influxdb2/explorer). 
 
