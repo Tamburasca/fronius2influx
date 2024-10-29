@@ -23,7 +23,7 @@ inside a Docker infrastructure, comprising three containers.
     docker-compose up -d
 
 Please create the token files inside 
-[docker/data/secrets](https://github.com/Tamburasca/fronius2influx/blob/426322986a35a77106e53a78811118613b7ca29a/docker/data/secrets) 
+[docker/data/secrets](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/secrets/README.md) 
 appropriately. The tokens for read and write access to the influxDB are 
 visible in the docker-compose logs after first initialization.
 
