@@ -11,6 +11,17 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+"""
+How to use CIPHER:
+OS environmental variable 'MOSQUITTO_CIPHER' (required) containing the cipher
+key to en-/decrypt the wattpilot access password. Run following commands 
+in python3
+>>> from cryptography.fernet import Fernet
+>>> mosquitto_cipher = Fernet.generate_key() # if key exists, skip this line
+>>> cipher_suite = Fernet(b'mosquitto_cipher')
+>>> application_key_encrypt = cipher_suite.encrypt(b'password')
+"""
+
 __author__ = "Dr. Ralf Antonius Timmermann"
 __copyright__ = ("Copyright (c) 2023-2024, Dr. Ralf Antonius Timmermann "
                  "All rights reserved.")

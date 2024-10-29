@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-OS environmental variable 'MOSQUITTO_CIPHER' (required) containing the cipher
-key to decrypt the wattpilot access password. Run following commands in python3
->>>from cryptography.fernet import Fernet
->>>mosquitto_cipher = Fernet.generate_key() # if key exists, skip this line
->>>cipher_suite = Fernet(mosquitto_cipher) # key in binary
->>>application_key_encrypt = cipher_suite.encrypt(b'password')
-"""
-
 import datetime
 import json
 import math

@@ -18,20 +18,12 @@ from enum import Enum, auto
 from time import sleep
 from types import SimpleNamespace
 
-# logging.basicConfig(level=logging.INFO)
-# logging = logging.getLogger(__name__)
-# def custom_format(self, record):
-#     dct = record.__dict__
-#     dct['name'] = "wattpilot"
-#     return self._fmt % dct
-# logging.PercentStyle._format = custom_format
 
-
-# class LoadMode(Enum):
-#     """Wrapper Class to represent the Load Mode of the Wattpilot"""
-#     DEFAULT = 3
-#     ECO = 4
-#     NEXTTRIP = 5
+class LoadMode(Enum):
+    """Wrapper Class to represent the Load Mode of the Wattpilot"""
+    DEFAULT = 3
+    ECO = 4
+    NEXTTRIP = 5
 
 
 class Event(Enum):
