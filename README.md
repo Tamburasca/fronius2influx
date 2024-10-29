@@ -9,9 +9,9 @@ more advanced, some extra work may be reqired, though.
 This application collects data from the following endpoints (Symo GEN24 6.0).
 Adjust fronius host and path accordingly (see parameter.json)
 
-    "http://<host ip>/<path>/GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
-    "http://<host ip>/<path>/GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
-    "http://<host ip>/<path>/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
+    "http://<host-ip>/<path>/GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
+    "http://<host-ip>/<path>/GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
+    "http://<host-ip>/<path>/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
 
 # Installation 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 64 GB SD)

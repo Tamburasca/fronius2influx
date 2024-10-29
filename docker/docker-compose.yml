@@ -62,9 +62,8 @@ services:
       - fronius_influxdb2
     environment:
       INFLUXDB_HOST: *database-container-name
-      INFLUXDB_PORT: 8086
-      INFLUXDB_TOKEN_FILE: /run/secrets/influxdb_token_write
-      WALLBOX_TOKEN_FILE: /run/secrets/wallbox_token
+    env_file:
+      - fronius2influx.env
 
 secrets:
     influxdb_init_password:
