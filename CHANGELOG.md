@@ -1,8 +1,9 @@
 # Changelog
-## 0.x.x (20xx-xx-xx)
+## 0.2.1 (2024-12-16)
 ### Added
 ### Changed
 ### Fixed
+- Atmosphere's refraction considered
 ### Deprecated
 ### Removed
 ### Security
