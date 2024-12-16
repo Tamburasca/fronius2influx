@@ -54,7 +54,7 @@
     },
     "wallbox": {
         "host": "Wattpilot-91025483",
-        "active": true
+        "active": false
     },
     "influxdb": {
         "host": "localhost",

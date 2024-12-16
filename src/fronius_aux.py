@@ -1,17 +1,16 @@
 import os
-from typing import Dict, Any
 from cryptography.fernet import Fernet
 
 
-def flatten_json(y) -> Dict[str, Any]:
+def flatten_json(y: dict) -> dict[str, any]:
     """
     https://towardsdatascience.com/flattening-json-objects-in-python-f5343c794b10
     :param y: semi-structured JSON object
     :return: flattened JSON object
     """
-    out: Dict[str, Any] = dict()
+    out: dict[str, any] = dict()
 
-    def flatten(x, name='') -> Dict[str, Any]:
+    def flatten(x, name='') -> dict[str, any]:
         if type(x) is dict:
             for a in x:
                 flatten(x[a], name + a + '_')

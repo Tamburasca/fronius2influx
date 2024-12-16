@@ -8,7 +8,7 @@ import os
 import logging
 from enum import Enum, EnumMeta
 from time import sleep
-from typing import Any, Generator
+from typing import Generator
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
@@ -24,7 +24,7 @@ MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
 
 MOSQUITTO_CIPHER = os.environ.get('MOSQUITTO_CIPHER')
-WALLBOX_TOKEN = os.environ.get('WALLBOX_TOKEN') # default
+WALLBOX_TOKEN = os.environ.get('WALLBOX_TOKEN')  # default
 
 
 class WrongFroniusData(Exception): ...
@@ -39,17 +39,6 @@ class DataCollectionError(Exception): ...
 class DeviceStatus(Exception): ...
 
 
-'''
-Cool hack on EnumMeta, just for kicks, pushing it to the limits!
-A list comprehension would solve it better of course, such as:
-endpoints = [
-("http://{0}{1}" + member.value).format(
-    parameter['server']['host'],
-    parameter['server']['application'] 
-)
-    for member in FroniusEndpoints
-]
-'''
 class _M(EnumMeta):
     def __iter__(self) -> Generator[None, str, None]:
         for member in super().__iter__():
@@ -65,13 +54,24 @@ class FroniusEndpoints(
     Enum,
     metaclass=_M
 ):
+    """
+    Cool hack on EnumMeta, just for kicks, pushing it to the limits!
+    A list comprehension would solve it better of course, such as:
+    endpoints = [
+    ("http://{0}{1}" + member.value).format(
+        parameter['server']['host'],
+        parameter['server']['application']
+    )
+        for member in FroniusEndpoints
+    ]
+    """
     INVERTER_REAL_TIME_DATA = "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
     STORAGE_REAL_TIME_DATA = "GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
     METER_REAL_TIME_DATA = "GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
-    # "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
+    # OBSOLETE = "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
 
     @classmethod
-    def get_endpoint(cls, **kwargs) -> Enum:
+    def get_endpoints(cls, **kwargs) -> Enum:
         cls.kwargs = kwargs
         return cls
 
@@ -85,7 +85,7 @@ class FroniusToInflux(object):
             self,
             *,
             client: InfluxDBClient,
-            parameter: dict[Any, Any],
+            parameter: dict,
             endpoints: list[str],
             wallbox: Wattpilot,
             debug: bool = False
@@ -104,9 +104,8 @@ class FroniusToInflux(object):
             longitude=parameter['location']['longitude'],
             timezone=parameter['location']['timezone']
         )
-        self.tz = pytz.timezone(parameter['location']['timezone'])
         self.debug = debug
-        self.data: dict[Any, Any] = dict()
+        self.data: dict = dict()
         self.ignore_sun_down: bool = False
 
     def get_float_or_zero(
@@ -244,9 +243,10 @@ class FroniusToInflux(object):
 
     def sun_parameter(self) -> list[dict[str, str | dict]]:
         altitude = self.parameter["location"]["altitude"]["value"]
-        el = elevation(self.location.observer)
+        el = elevation(observer=self.location.observer,
+                       with_refraction=True)
         if el > 0:
-            az = azimuth(self.location.observer)
+            az = azimuth(observer=self.location.observer)
             # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
             # air_mass = 1. / math.cos(math.radians(90. - el))
             # The Kasten and Young formula was originally given in terms of
@@ -271,10 +271,10 @@ class FroniusToInflux(object):
                           "sun azimuth: {1} deg, "
                           "air mass: {2}, "
                           "air mass attenuation: {3}".format(
-                            el,
-                            az,
-                            air_mass_revised,
-                            air_mass_attenuation))
+                el,
+                az,
+                air_mass_revised,
+                air_mass_attenuation))
             for item, value in self.parameter['housetop'].items():
                 # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
                 r = max(
@@ -290,10 +290,10 @@ class FroniusToInflux(object):
                               "incidence angle: {1} deg, "
                               "incidence factor: {2}, "
                               "true irradiation: {3} Wm⁻²".format(
-                                item,
-                                incidence_angle_sun,
-                                r,
-                                intens * r))
+                    item,
+                    incidence_angle_sun,
+                    r,
+                    intens * r))
                 result[item] = {
                     "intensity_corr_area_eff": intens
                                                * value['area']['value']
@@ -410,7 +410,7 @@ def main() -> None:
         verify_ssl=parameter['influxdb']['verify_ssl']
     )
 
-    endpoints = FroniusEndpoints.get_endpoint(
+    endpoints = FroniusEndpoints.get_endpoints(
         host=parameter['server']['host'],
         application=parameter['server']['application']
     )
