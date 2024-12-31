@@ -24,7 +24,6 @@ MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
 
 MOSQUITTO_CIPHER = os.environ.get('MOSQUITTO_CIPHER')
-WALLBOX_TOKEN = os.environ.get('WALLBOX_TOKEN')  # default
 
 
 class WrongFroniusData(Exception): ...
@@ -40,7 +39,7 @@ class DeviceStatus(Exception): ...
 
 
 class _M(EnumMeta):
-    def __iter__(self) -> Generator[None, str, None]:
+    def __iter__(self) -> Generator[str, None, None]:
         for member in super().__iter__():
             yield "http://{}{}{}".format(
                 member.kwargs['host'],
@@ -56,14 +55,11 @@ class FroniusEndpoints(
 ):
     """
     Cool hack on EnumMeta, just for kicks, pushing it to the limits!
-    A list comprehension would solve it better of course, such as:
-    endpoints = [
-    ("http://{0}{1}" + member.value).format(
+    A list comprehension would have solved it better of course, such as:
+    endpoints = [("http://{0}{1}" + member.value).format(
         parameter['server']['host'],
         parameter['server']['application']
-    )
-        for member in FroniusEndpoints
-    ]
+    ) for member in FroniusEndpoints]
     """
     INVERTER_REAL_TIME_DATA = "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
     STORAGE_REAL_TIME_DATA = "GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
@@ -91,7 +87,7 @@ class FroniusToInflux(object):
             debug: bool = False
     ):
         self.client = client
-        self.write = client.write_api(
+        self.write = client.write_api(  # batch mode
             write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
         )
         self.endpoints = endpoints
@@ -242,11 +238,11 @@ class FroniusToInflux(object):
             raise DataCollectionError("Unknown data collection type.")
 
     def sun_parameter(self) -> list[dict[str, str | dict]]:
-        altitude = self.parameter["location"]["altitude"]["value"]
         el = elevation(observer=self.location.observer,
                        with_refraction=True)
         if el > 0:
             az = azimuth(observer=self.location.observer)
+            altitude = self.parameter["location"]["altitude"]["value"]
             # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
             # air_mass = 1. / math.cos(math.radians(90. - el))
             # The Kasten and Young formula was originally given in terms of
@@ -382,6 +378,8 @@ class FroniusToInflux(object):
 
 
 def main() -> None:
+    wallbox: Wattpilot = None
+
     parameter_file = "{}/data/parameter.json".format(
         os.path.dirname(os.path.realpath(__file__))
     )
@@ -415,10 +413,9 @@ def main() -> None:
         application=parameter['server']['application']
     )
 
-    wallbox: Wattpilot = None
     if parameter['wallbox']['active']:
         wallbox_token = get_secret('WALLBOX_TOKEN_FILE',
-                                   WALLBOX_TOKEN)
+                                   os.environ.get('WALLBOX_TOKEN'))
         wallbox = Wattpilot(
             ip=parameter['wallbox']['host'],
             password=pw(wallbox_token, MOSQUITTO_CIPHER),

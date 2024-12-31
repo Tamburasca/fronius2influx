@@ -63,6 +63,9 @@
         "organization": "Fronius",
         "bucket": "Fronius"
     },
+    "ecmwf_forecast": {
+        "parameter" : ["ssrd"]
+    },
     "ignore_sun_down": true,
     "debug": false
 }
