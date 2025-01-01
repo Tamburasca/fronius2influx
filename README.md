@@ -6,10 +6,10 @@ the most basic Fronius inverter data serving for a basic setup. If your
 installation is much different or more advanced, some extra work may be reqired,
 though. 
 
-Furthermore, weather forecasts are downloaded from 
-[European Centre for Medium-Range Weather Forecasts(ECMWF)]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
+Furthermore, weather forecasts are downloaded from the
+[European Centre for Medium-Range Weather Forecasts (ECMWF)]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
 i.e. the "Surface short-wave (solar) radiation downwards", in order to 
-predict the energy to be expected by the PV installation 
+predict the (day-by-day) energy to be expected by the PV installation 
 for the upcoming 10 days.
 
 # Fronius Endpoints 
