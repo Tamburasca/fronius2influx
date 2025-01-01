@@ -1,0 +1,37 @@
+FROM python:3.12-slim
+
+RUN apt-get update && \
+    apt-get -y upgrade && \
+    apt-get -y install cron
+
+WORKDIR /ecmwf/
+
+# pre-requirement for pygrib: this is required with containers only on a
+# raspberry, however, it consumes additional 300 MB of disk space
+RUN apt-get -y install python3-grib
+
+# requirements
+COPY src/requirements_ecmwf.txt /ecmwf/src/requirements_ecmwf.txt
+RUN apt-get -y install --upgrade pip && \
+    pip install -r /ecmwf/src/requirements_ecmwf.txt && \
+    rm -f /ecmwf/requirements_ecmwf.txt
+
+# application and data directory
+COPY src/ecmwf_calculate.py /ecmwf/src/
+COPY src/ecmwf_download.py /ecmwf/src/
+COPY src/fronius_aux.py /ecmwf/src/
+COPY src/data/parameter.json /ecmwf/src/data/
+
+# Copy and enable your CRON task + copy appropriate shells for environment vars
+COPY docker/cron/*.sh /ecmwf
+RUN chmod +x /ecmwf/*.sh
+COPY docker/cron/ecmwf_cron /etc/cron.d/ecmwf_cron
+RUN chmod 0644 /etc/cron.d/ecmwf_cron
+RUN crontab /etc/cron.d/ecmwf_cron
+# Create empty log (TAIL needs this)
+RUN touch /var/log/cron.log
+
+ENV PYTHONPATH=.
+# CMD ["cron", "&&", "tail", "-f", "/var/cron.log"]
+# http://web.archive.org/web/20230118040109/https://roboslang.blog/post/2017-12-06-cron-docker/
+CMD /ecmwf/start.sh

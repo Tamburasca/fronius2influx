@@ -1,9 +1,16 @@
-# Fronius-To-InfluxDB
+# Monitoring for a Fronius Photovoltaic Installation
 
-Request data from Fronius inverter's Rest API and store it in the 
-InfluxDB v2.7 for visualization in Grafana. This application collects the most basic 
-Fronius inverter data serving for a basic setup. If your installation is 
-more advanced, some extra work may be reqired, though. 
+Request monitoring data from a Fronius photovoltaic inverter's Rest API and 
+store it in an InfluxDB for visualization in Grafana. This application collects
+the most basic Fronius inverter data serving for a basic setup. If your 
+installation is much different or more advanced, some extra work may be reqired,
+though. 
+
+Furthermore, weather forecasts are downloaded from 
+[European Centre for Medium-Range Weather Forecasts(ECMWF)]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
+i.e. the "Surface short-wave (solar) radiation downwards", in order to 
+predict the energy to be expected by the PV installation 
+for the upcoming 10 days.
 
 # Fronius Endpoints 
 This application collects data from the following endpoints (Symo GEN24 6.0).
@@ -14,9 +21,9 @@ Adjust fronius host and path accordingly (see parameter.json)
     "http://<host-ip>/<path>/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
 
 # Installation 
-The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 64 GB SD)
-inside a Docker infrastructure, comprising three containers. 
-![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP.png)
+The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 
+64 GB SD card) inside a Docker infrastructure, comprising four containers. 
+![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_1.png)
 
     cd docker
     docker-compose build

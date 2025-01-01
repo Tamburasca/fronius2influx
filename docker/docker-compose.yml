@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 ################################################################################
 # Fronius database influxDB 2.7
@@ -58,6 +56,29 @@ services:
     secrets:
       - influxdb_token_write
       - wallbox_token
+    depends_on:
+      - fronius_influxdb2
+    environment:
+      INFLUXDB_HOST: *database-container-name
+    env_file:
+      - fronius2influx.env
+
+################################################################################
+# ECMWF weather forecast testing cron in slim-python
+################################################################################
+  forecast:
+    build:
+      context: ..
+      dockerfile: ./docker/application/DockerfileECMWF
+    image: "forecast:0.1"
+    container_name: forecast
+#    volumes:
+#      - ../src/data:/ecmwf/src/data
+    networks:
+      fronius_net:
+    restart: unless-stopped
+    secrets:
+      - influxdb_token_write
     depends_on:
       - fronius_influxdb2
     environment:

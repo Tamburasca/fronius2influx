@@ -1,4 +1,13 @@
 # Changelog
+## 1.0.0 (2025-01-01)
+### Added
+- Energy prediction for the PV installation 
+as computed utilizing the ECMWF weather forecast (open data)
+### Changed
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 0.2.1 (2024-12-16)
 ### Added
 ### Changed
