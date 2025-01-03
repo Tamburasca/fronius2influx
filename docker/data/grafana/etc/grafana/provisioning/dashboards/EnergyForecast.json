@@ -90,7 +90,7 @@
         ]
       },
       "gridPos": {
-        "h": 12,
+        "h": 10,
         "w": 24,
         "x": 0,
         "y": 0
@@ -124,7 +124,7 @@
             "type": "influxdb",
             "uid": "fc4728ea-82cb-47dc-bd95-d141263b46f9"
           },
-          "query": "import \"timezone\"\n\noption location = timezone.location(name: \"Europe/Berlin\")\n\nRES = 86400 // time resolution\nfrom(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"Forecast\" and r[\"_field\"] == \"ssrd\")\n  |> aggregateWindow(every: duration(v: RES * 1000000000), offset: -1h, fn: sum)\n",
+          "query": "import \"timezone\"\n\noption location = timezone.location(name: \"Europe/Berlin\")\n\nfrom(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"Forecast\" and r[\"_field\"] == \"ssrd\")\n  |> aggregateWindow(every: 1d, offset: -1m, fn: sum)\n",
           "refId": "A"
         }
       ],
@@ -146,8 +146,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Energy Forecast",
+  "title": "EnergyForecast",
   "uid": "fe8dybrwur4zkb",
-  "version": 8,
+  "version": 17,
   "weekStart": ""
 }

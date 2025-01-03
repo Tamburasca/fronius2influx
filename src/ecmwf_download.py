@@ -92,12 +92,12 @@ def retrieve_ecmwf(
             # time=00
         )
         os.chmod(target, 0o666)  # docker owner is root, anyone can delete
-        print(
-            "Target file: {0}\n"
-            "Forecast Run (base time): {1}\n"
-            "URL(s) requested: {2}\n"
-            .format(results.target, results.datetime, results.urls)
+        logging.info(
+            "Target file: {}\n"
+            "Forecast Run (base time): {}"
+            .format(results.target, results.datetime)
         )
+        logging.debug("URLs requested: {}".format(results.urls))
 
         fsss = pygrib_open(target)
         fss = fsss.read()
@@ -157,14 +157,17 @@ def main(
         test: bool = False
 ) -> None:
 
+    # read configs
     config_file = "{}/parameter.json".format(DATA_DIR)
     config = json.load(open(config_file, "r"))
 
+    # define logging
     logging_level: str = "DEBUG" if config['debug'] else "INFO"
     logging.basicConfig(format=MYFORMAT,
                         level=getattr(logging, logging_level),
                         datefmt="%Y-%m-%d %H:%M:%S")
-
+    logging.info(f"Python version utilized: {sys.version_info}")
+    # define influxDB client: write oken & synchronous load
     influxdb_host = os.getenv('INFLUXDB_HOST',
                               config['influxdb']['host'])
     influxdb_port = int(os.getenv('INFLUXDB_PORT',
@@ -181,20 +184,24 @@ def main(
     )
     influx_write_api = influx_client.write_api(write_options=SYNCHRONOUS)
 
+    # ECMWF open data parameters to be read subsequently
     params: list = config['ecmwf_forecast']['parameter']
+    # Coordinates and its location in the grid
     coords = np_array([config['location']['latitude'],
                        config['location']['longitude']])
-    # place a grid cell over the region to be used for forecast
+    # place a grid cell over the region to be used for forecast and interpolate
     grid: dict[str, float] = create_grid(coordinates=coords,
                                          resolution=SPATIAL_RESOLUTION)
     if extended:
         # HRES 	@ 00 and 12 hrs	UTC, step size: 0 to 144 by 3, 144 to 240 by 6
         steps: list = list(range(0, 144, 3)) + list(range(144, 241, 6))
-        print("Fetching 10-day Forecast for parameter(s): {}".format(params))
+        logging.info(
+            "Fetching 10-day Forecast for parameter(s): {}".format(params))
     else:
         # HRES 	@ 06 and 18 hrs UTC, step size: 0 to 90 by 3
         steps: list = list(range(0, 91, 3))
-        print("Fetching 90-hr Forecast for parameter(s): {}".format(params))
+        logging.info(
+            "Fetching 90-hr Forecast for parameter(s): {}".format(params))
 
     dict_x = retrieve_ecmwf(
         params=params,
@@ -223,7 +230,8 @@ def main(
             from_date=datum[i],
             to_date=datum[i+1]
         )
-        forecasted_flux = max(values[i + 1] - values[i], 0.)  # may be negative!
+        # may be slightly negative by calculations of ECMWF (accumulated ssrd)!
+        forecasted_flux = max(values[i + 1] - values[i], 0.)
 
         logging.debug(
             "Date: {}, "
@@ -268,7 +276,6 @@ def main(
 
 
 if __name__ == "__main__":
-    print(f"Python version utilized: {sys.version_info}")
     parser = argparse.ArgumentParser(
         description="Downloads weather forecasts from ECMWF")
     parser.add_argument(

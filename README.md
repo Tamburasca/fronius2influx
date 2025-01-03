@@ -1,4 +1,4 @@
-# Monitoring for a Fronius Photovoltaic Installation
+# Monitoring of a Fronius Photovoltaic Installation
 
 Request monitoring data from a Fronius photovoltaic inverter's Rest API and 
 store it in an InfluxDB for visualization in Grafana. This application collects
