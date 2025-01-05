@@ -34,7 +34,7 @@ provided by 3phase Fronius inverters.
 * Forecast: predicted solar flux on all PV panels accumulated over the step 
 size ECMWF provides for the next 10 days.
 
-Moreover, bucket "aggregates", measurement "daily" represents a 
+Moreover, the measurement "daily" in bucket "aggregates" represents a 
 materialized view over all energy data downsampled to 1 minute. The 
 [task](https://github.com/Tamburasca/fronius2influx/blob/main/docker/data/influxdb2/explorer/downsample.flux) for the creation of the 
 materialized view runs once a day triggered by an influxDB scheduler.
