@@ -1,8 +1,9 @@
 # Monitoring a PV Infrastructure by Fronius
 
-Request monitoring data from a Fronius PV inverter's Rest API and 
-store it in an InfluxDB for visualization in Grafana. This application collects
-the most basic Fronius inverter data serving for a basic setup. If your 
+Request monitoring data from a Fronius PV inverter's Rest API foreward and 
+store it in an InfluxDB for visualization in Grafana. The current application 
+collects the most fundamental Fronius inverter data serving for a basic setup. 
+If your 
 installation is much different or more advanced, some extra work may be reqired,
 though.
 
@@ -14,7 +15,8 @@ for the upcoming 10 days.
 
 # Fronius Endpoints 
 This application collects data from the following endpoints (Symo GEN24 6.0).
-For further reading see the [API](https://www.fronius.com/~/downloads/Solar%20Energy/Operating%20Instructions/42,0410,2012.pdf)
+For further reading see the appropriate
+[API](https://www.fronius.com/~/downloads/Solar%20Energy/Operating%20Instructions/42,0410,2012.pdf).
 Adjust fronius host and path accordingly (see 
 [parameter.json](https://github.com/Tamburasca/fronius2influx/blob/main/src/data/parameter.json))
 
@@ -25,18 +27,20 @@ Adjust fronius host and path accordingly (see
 # influxDB
 All data is stored in bucket "Fronius", comprising the following measurements:
 
-* "DeviceStatus": status of inverter
-* "collection": Values which are cumulated to generate a system overview & 
-Values which are provided by all types of Fronius inverters and values which are 
-provided by 3phase Fronius inverters.
-* "Battery": Battery charging status, (dis-)charging demand, battery temperature
+* "DeviceStatus": status of inverter (no dashboard available in Grafana).
+* "collection": 
+  * values which are cumulated to generate a system overview
+  * values which are provided by all types of Fronius inverters and 
+  * values which are provided by 3phase Fronius inverters.
+* "Battery": Battery charging status, (dis-)charging demand (voltage and current), battery temperature
 * "SmartMeter": detailed information about Meter devices.
 * "Forecast": predicted solar flux (units of kWh) on all PV panels 
-as accumulated over the step size that is provided by ECMWF for the next 10 days.
-ECMWF data is updated 4 times a day - cron job provided in docker
+as cumulated over the step size provided by ECMWF for the next 10 days.
+ECMWF data is updated 4 times a day - according to the cron job in docker.
 
-Moreover, the measurement "daily" in bucket "aggregates" represents a 
-materialized view over all energy data downsampled to 1 minute. The 
+Moreover, in bucket "aggregates" the measurement "daily" represents a 
+materialized view over all energy data as downsampled to 1 minute. 
+The dashboards "Aggregates Daily and Monthly" query on this measurement. The 
 [task](https://github.com/Tamburasca/fronius2influx/blob/main/docker/data/influxdb2/explorer/downsample.flux) for the creation of the 
 materialized view runs once a day triggered by an influxDB scheduler.
 
@@ -49,8 +53,7 @@ The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a
     docker-compose build
     docker-compose up -d
 
-Please create the token files inside 
-[docker/data/secrets](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/secrets/README.md) 
+Please create the token files inside [docker/data/secrets](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/secrets/README.md) 
 appropriately. The tokens for read and write access to the influxDB are 
 visible in the docker-compose logs after first initialization.
 
@@ -58,7 +61,7 @@ visible in the docker-compose logs after first initialization.
 available via Grafana 
 [dashboards](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/grafana/etc/grafana/provisioning/dashboards) 
 and 
-[influxDB flux](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/influxdb2/explorer). 
+[influxDB flux](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/influxdb2/explorer).
 
 # Wallbox: Wattpilot
 Thanks to [Wattpilot](https://github.com/joscha82/wattpilot)
