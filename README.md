@@ -31,8 +31,9 @@ Values which are provided by all types of Fronius inverters and values which are
 provided by 3phase Fronius inverters.
 * "Battery": Battery charging status, (dis-)charging demand, battery temperature
 * "SmartMeter": detailed information about Meter devices.
-* Forecast: predicted solar flux on all PV panels accumulated over the step 
-size ECMWF provides for the next 10 days.
+* "Forecast": predicted solar flux (units of kWh) on all PV panels 
+as accumulated over the step size that is provided by ECMWF for the next 10 days.
+ECMWF data is updated 4 times a day - cron job provided in docker
 
 Moreover, the measurement "daily" in bucket "aggregates" represents a 
 materialized view over all energy data downsampled to 1 minute. The 
