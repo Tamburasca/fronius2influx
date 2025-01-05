@@ -67,6 +67,7 @@ class SunInflux(object):
                         "power": (self.SOLAR_CONSTANT
                                   * math.sin(math.radians(el))
                                   * air_mass_attenuation),  # ToDo: air mass to be considered?
+                                  # * 1.),
                         "air_mass_attenuation": air_mass_attenuation
                     },
                     "panel": {}

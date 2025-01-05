@@ -1,26 +1,45 @@
-# Monitoring of a Fronius Photovoltaic Installation
+# Monitoring a PV Infrastructure by Fronius
 
-Request monitoring data from a Fronius photovoltaic inverter's Rest API and 
+Request monitoring data from a Fronius PV inverter's Rest API and 
 store it in an InfluxDB for visualization in Grafana. This application collects
 the most basic Fronius inverter data serving for a basic setup. If your 
 installation is much different or more advanced, some extra work may be reqired,
-though. 
+though.
 
-Furthermore, weather forecasts are downloaded from the
+Furthermore, weather forecasts, i.e. the "Surface short-wave (solar) radiation 
+downwards", are downloaded from the
 [European Centre for Medium-Range Weather Forecasts (ECMWF)]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
-i.e. the "Surface short-wave (solar) radiation downwards", in order to 
-predict the (day-by-day) energy to be expected by the PV installation 
+in order to predict the (day-by-day) energy to be expected by the PV installation 
 for the upcoming 10 days.
 
 # Fronius Endpoints 
 This application collects data from the following endpoints (Symo GEN24 6.0).
-Adjust fronius host and path accordingly (see parameter.json)
+For further reading see the [API](https://www.fronius.com/~/downloads/Solar%20Energy/Operating%20Instructions/42,0410,2012.pdf)
+Adjust fronius host and path accordingly (see 
+[parameter.json](https://github.com/Tamburasca/fronius2influx/blob/main/src/data/parameter.json))
 
     "http://<host-ip>/<path>/GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
     "http://<host-ip>/<path>/GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
     "http://<host-ip>/<path>/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
 
-# Installation 
+# influxDB
+All data is stored in bucket "Fronius", comprising the following measurements:
+
+* "DeviceStatus": status of inverter
+* "collection": Values which are cumulated to generate a system overview & 
+Values which are provided by all types of Fronius inverters and values which are 
+provided by 3phase Fronius inverters.
+* "Battery": Battery charging status, (dis-)charging demand, battery temperature
+* "SmartMeter": detailed information about Meter devices.
+* Forecast: predicted solar flux on all PV panels accumulated over the step 
+size ECMWF provides for the next 10 days.
+
+Moreover, bucket "aggregates", measurement "daily" represents a 
+materialized view over all energy data downsampled to 1 minute. The 
+[task](https://github.com/Tamburasca/fronius2influx/blob/main/docker/data/influxdb2/explorer/downsample.flux) for the creation of the 
+materialized view runs once a day triggered by an influxDB scheduler.
+
+# Architecture 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 
 64 GB SD card) inside a Docker infrastructure, comprising four containers. 
 ![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_1.png)
@@ -45,6 +64,10 @@ Thanks to [Wattpilot](https://github.com/joscha82/wattpilot)
 we implemented parts of their coding to account for monitoring the wallbox.
 
 # Caveat
-The current [setup](https://github.com/Tamburasca/fronius2influx/blob/main/src/data/parameter.json) considers photovoltaic modules on either side of the 
-rooftop. For other cases, adjust the FLUX statements (in Grafana) appropriately, i.e.
+The current setup 
+considers photovoltaic modules on either side of the rooftop. 
+For other cases, adjust the FLUX statements (in Grafana) appropriately, i.e.
 the setup is not generic.
+
+# Note
+Current README will be updated in more detail. Stay tuned.

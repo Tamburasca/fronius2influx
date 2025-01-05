@@ -72,7 +72,7 @@ def retrieve_ecmwf(
         grid: dict
 ) -> dict:
 
-    file_default = "grib_tmp.grib2"
+    file_default = "ecmwf_tmp.grib2"
     dict_x: dict = {}
     target: str = "{}/{}".format(DATA_DIR, file_default)
 
