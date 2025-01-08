@@ -31,6 +31,7 @@ All data is stored in bucket "Fronius", comprising the following measurements:
 * "CommonInverterData": values which are cumulated to generate a system overview
 * "Battery": charging status, (dis-)charging demand (voltage and current), temperature
 * "SmartMeter": detailed information about Meter devices.
+* "SolarData": calculated energy on each panel, as function of the geolocation of PV installation, solar position, and attenuation owing to airmass  
 * "Forecast": predicted solar flux (units of kWh) on all PV panels 
 as cumulated over the step size provided by ECMWF for the next 10 days.
 ECMWF data is updated 4 times a day - according to the cron job in docker.
