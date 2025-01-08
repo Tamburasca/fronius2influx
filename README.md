@@ -31,13 +31,14 @@ All data is stored in bucket "Fronius", comprising the following measurements:
 * "CommonInverterData": values which are cumulated to generate a system overview
 * "Battery": charging status, (dis-)charging demand (voltage and current), temperature
 * "SmartMeter": detailed information about Meter devices.
-* "SolarData": calculated energy on each panel, as function of the geolocation of PV installation, solar position, and attenuation owing to airmass  
+* "SolarData": calculated energy on each panel group, as function of the 
+geolocation of the PV installation, solar position, and attenuation owing to airmass.  
 * "Forecast": predicted solar flux (units of kWh) on all PV panels 
 as cumulated over the step size provided by ECMWF for the next 10 days.
 ECMWF data is updated 4 times a day - according to the cron job in docker.
 
 Moreover, in bucket "aggregates" the measurement "daily" represents a 
-materialized view over all energy data as downsampled to 1 minute. 
+materialized view over all energy data aggregated to one day.
 The dashboards "Aggregates Daily and Monthly" query on this measurement. The 
 [task](https://github.com/Tamburasca/fronius2influx/blob/main/docker/data/influxdb2/explorer/downsample.flux) for the creation of the 
 materialized view runs once a day triggered by an influxDB scheduler.
