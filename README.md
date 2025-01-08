@@ -28,11 +28,8 @@ Adjust fronius host and path accordingly (see
 All data is stored in bucket "Fronius", comprising the following measurements:
 
 * "DeviceStatus": status of inverter (no dashboard available in Grafana).
-* "collection": 
-  * values which are cumulated to generate a system overview
-  * values which are provided by all types of Fronius inverters and 
-  * values which are provided by 3phase Fronius inverters.
-* "Battery": Battery charging status, (dis-)charging demand (voltage and current), battery temperature
+* "CommonInverterData": values which are cumulated to generate a system overview
+* "Battery": charging status, (dis-)charging demand (voltage and current), temperature
 * "SmartMeter": detailed information about Meter devices.
 * "Forecast": predicted solar flux (units of kWh) on all PV panels 
 as cumulated over the step size provided by ECMWF for the next 10 days.
@@ -74,4 +71,4 @@ For other cases, adjust the FLUX statements (in Grafana) appropriately, i.e.
 the setup is not generic.
 
 # Note
-Current README will be updated in more detail. Stay tuned.
+Current README will be updated in more detail.
