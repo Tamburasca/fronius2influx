@@ -24,8 +24,8 @@ Adjust fronius host and path accordingly (see
     "http://<host-ip>/<path>/GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
     "http://<host-ip>/<path>/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
 
-# influxDB
-All data is stored in bucket "Fronius", comprising the following measurements:
+# influxDB v2
+All monitoring data is stored in bucket "Fronius", comprising the following measurements:
 
 * "DeviceStatus": status of inverter (no dashboard available in Grafana).
 * "CommonInverterData": values which are cumulated to generate a system overview
@@ -38,7 +38,14 @@ as cumulated over the step size provided by ECMWF for the next 10 days.
 ECMWF data is updated 4 times a day - according to the cron job in docker.
 
 Moreover, in bucket "aggregates" the measurement "daily" represents a 
-materialized view over all energy data aggregated to one day.
+materialized view over all energy data aggregated to one day, such as:
+* Battery (dis-)charged
+* Net (from/to)
+* Power consumed
+* Power solar
+* Produced In
+* Usage Direct
+
 The dashboards "Aggregates Daily and Monthly" query on this measurement. The 
 [task](https://github.com/Tamburasca/fronius2influx/blob/main/docker/data/influxdb2/explorer/downsample.flux) for the creation of the 
 materialized view runs once a day triggered by an influxDB scheduler.
