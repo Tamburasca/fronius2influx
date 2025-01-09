@@ -5,6 +5,7 @@ import json
 import math
 import pytz
 import os
+import sys
 import logging
 from enum import Enum, EnumMeta
 from time import sleep
@@ -372,9 +373,9 @@ class FroniusToInflux(object):
 
         except KeyboardInterrupt:
             print("Finishing. Goodbye!")
-            os._exit(os.EX_OK)
+            sys.exit(os.EX_OK)
         except (Exception,):
-            os._exit(os.EX_OSERR)
+            sys.exit(os.EX_OSERR)
 
 
 def main() -> None:
