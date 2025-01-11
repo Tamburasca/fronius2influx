@@ -69,7 +69,7 @@ services:
   forecast:
     build:
       context: ..
-      dockerfile: application/Dockerfile_ECMWF
+      dockerfile: ./docker/application/Dockerfile_ECMWF
     image: "forecast:0.1"
     container_name: forecast
 #    volumes:
