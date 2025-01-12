@@ -1,4 +1,19 @@
 # Changelog
+## x.x.x (2025-xx-xx)
+### Added
+### Changed
+### Fixed
+### Deprecated
+### Removed
+### Security
+## 1.0.1 (2025-01-12)
+### Added
+### Changed
+- SunInflux calculation optimized for varying intervals
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.0.0 (2025-01-01)
 ### Added
 - Energy prediction for the PV installation 

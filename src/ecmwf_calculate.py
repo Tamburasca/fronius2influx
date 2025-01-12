@@ -70,7 +70,7 @@ class SunInflux(object):
                                   # * 1.),
                         "air_mass_attenuation": air_mass_attenuation
                     },
-                    "panel": {}
+                    "panels": 0.
                 }
             }
 
@@ -85,7 +85,7 @@ class SunInflux(object):
                     0.
                 )
                 # incidence_angle_sun = math.degrees(math.asin(r))
-                result[dateandtime]["panel"][item] = (
+                result[dateandtime]["panels"] += (
                         self.SOLAR_CONSTANT
                         * air_mass_attenuation
                         * value['area']['value']
@@ -100,7 +100,7 @@ class SunInflux(object):
                     "sun": {
                         "power": 0.
                     },
-                    "panel": {}
+                    "panels": 0.
                 }
             }
 
@@ -114,24 +114,30 @@ class SunInflux(object):
         Datetime generator increases by 1 hr
         :param from_date:
         :param to_date:
-        :param t_delta: time delta in minutes
+        :param t_delta: time delta in minutes, must be equal time intervals
+        between from_date and to_date
         :return: iterable
         """
+        diff = (to_date - from_date).total_seconds() / 60
+        assert diff % t_delta == 0, "Unequal intervals between from and to!"
         to_date = to_date if to_date else from_date
         while from_date <= to_date:
             yield from_date
             from_date = from_date + timedelta(minutes=t_delta)
 
     @staticmethod
-    def _mean_hours(p: list) -> float:
+    def _mean_hours(
+            p: list,
+            t_delta: int = 60
+    ) -> float:
         """
         Sum over means of all adjacent neighbors in list p
         :param p:
-        :return:
+        :param t_delta: intervals in minutes
+        :return: power in units of kWh
         """
-        return sum(
-            [(p[i] + p[i + 1]) / 2 for i in range(len(p) - 1)]
-        )
+        return (t_delta / 60 *
+                sum([(p[i] + p[i + 1]) / 2 for i in range(len(p) - 1)]))
 
     def calc(
             self,
@@ -145,31 +151,31 @@ class SunInflux(object):
         :param to_date: may be empty if integration over one hour from from_date
         :return:
         """
-        res: dict = dict()
-        panels: dict = dict()
-        panels_all: float = 0.
+        panels = list()
+        powers = list()
+        t_delta: int = 12
 
         for item in self._date_generator(
                 from_date=from_date,
-                to_date=to_date
+                to_date=to_date,
+                t_delta=t_delta
         ):
-            res.update(self.sun_parameter(dateandtime=item))
+            res = self.sun_parameter(dateandtime=item)[item]
+            powers.append(res['sun']['power'])
+            panels.append(res['panels'])
 
-        for item in res.values():
-            for k, v in item['panel'].items():
-                try:
-                    panels[k].append(v)
-                except KeyError:
-                    panels[k] = [v]
-
-        powers = [v['sun']['power'] for v in res.values()]
         if to_date:
-            accumulated = self._mean_hours(powers)
-            for v in panels.values():
-                panels_all += self._mean_hours(v)
+            accumulated = self._mean_hours(
+                powers,
+                t_delta=t_delta
+            )
+            panels_all = self._mean_hours(
+                panels,
+                t_delta=t_delta
+            )
         else:
             accumulated = powers[0]
-            for v in panels.values():
-                panels_all += v[0]
+            panels_all = panels[0]
 
-        return accumulated * 3_600, panels_all / 1_000
+        return (accumulated * 3_600,
+                panels_all / 1_000)

@@ -39,7 +39,7 @@ class DataCollectionError(Exception): ...
 class DeviceStatus(Exception): ...
 
 
-class _M(EnumMeta):
+class _Meta(EnumMeta):
     def __iter__(self) -> Generator[str, None, None]:
         for member in super().__iter__():
             yield "http://{}{}{}".format(
@@ -52,7 +52,7 @@ class _M(EnumMeta):
 class FroniusEndpoints(
     str,
     Enum,
-    metaclass=_M
+    metaclass=_Meta
 ):
     """
     Cool hack on EnumMeta, just for kicks, pushing it to the limits!
