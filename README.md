@@ -38,7 +38,7 @@ All monitoring data is stored in bucket "Fronius", comprising the following meas
 geolocation of the PV installation, solar position, and attenuation owing to airmass.  
 * "Forecast": predicted solar flux (units of kWh) on all PV panels 
 as cumulated over the step size provided by ECMWF for the next 10 days and GFS
-* for the next 16 days. Forecast data is updated 4 times a day - 
+for the next 16 days. Forecast data is updated 4 times a day - 
 according to the cron job in docker. Fields: "ssdr" (ECMWF) and "dswrf" (GFS).
 
 Moreover, in bucket "aggregates" the measurement "daily" represents a 
