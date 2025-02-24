@@ -1,0 +1,3 @@
+45 8,20 * * *  /app/cron-execution.sh -e >/var/log/ecmwf_out.log 2>/var/log/ecmwf_err.log
+45 1,13 * * *  /app/cron-execution.sh >/var/log/ecmwf_out.log 2>/var/log/ecmwf_err.log
+30 5,11,17,23 * * *  /app/cron-execution_gfs.sh -p >/var/log/gfs_out.log 2>/var/log/gfs_err.log

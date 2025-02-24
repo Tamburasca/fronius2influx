@@ -11,7 +11,10 @@ Furthermore, weather forecasts, i.e. the "Surface short-wave (solar) radiation
 downwards", are downloaded from the
 [European Centre for Medium-Range Weather Forecasts (ECMWF)]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
 in order to predict the (day-by-day) energy to be expected by the PV installation 
-for the upcoming 10 days.
+for the upcoming 10 days. In parallel the same data is downloaded from the GFS 
+of NCEP (NOAA). This data comprises a 16-day forecast with a temporal resolution
+of 1 hr for the first 120 hrs of each forecast and a resolution of 3 hrs. 
+thereafter. The spatial resolution of the GFS data is 0°.11 $\equiv$ 12 km.
 
 # Fronius Endpoints 
 This application collects data from the following endpoints (Symo GEN24 6.0).

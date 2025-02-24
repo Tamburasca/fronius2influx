@@ -5,3 +5,4 @@ scipy>=1.14.1
 numpy>=2.2.1
 astral>=3.2
 cryptography>=43.0.3
+bs4>=0.0.2

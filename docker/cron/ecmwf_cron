@@ -1,2 +1,0 @@
-45 8,20 * * *  /ecmwf/cron-execution.sh -e >>/var/log/out.log 2>/var/log/err.log
-45 1,13 * * *  /ecmwf/cron-execution.sh >>/var/log/out.log 2>/var/log/err.log

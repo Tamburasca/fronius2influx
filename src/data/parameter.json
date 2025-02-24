@@ -66,6 +66,9 @@
     "ecmwf_forecast": {
         "parameter" : ["ssrd"]
     },
+    "gfs_forecast": [
+        {"shortName": ["dswrf"], "typeOfLevel": "surface", "validity": "hour fcst"}
+    ],
     "ignore_sun_down": true,
     "debug": false
 }

@@ -27,6 +27,8 @@ class SunInflux(object):
             region=parameter['location']['region'],
             latitude=parameter['location']['latitude'],
             longitude=parameter['location']['longitude'],
+            # apparently the timezone imposes no effect on the computation of
+            # astral.sun.elevation and azimuth
             timezone=parameter['location']['timezone']
         )
         self.debug = debug  # not used
@@ -34,7 +36,7 @@ class SunInflux(object):
     def sun_parameter(
             self,
             dateandtime: datetime
-    ) -> dict[str, dict[str, float]]:
+    ) -> dict[datetime, dict[str, float]]:
         """
         Calculates the energy acquired by solar irradiation on earth's ground
         and PV pnanels, in units of W * m**-2 and W.
@@ -55,7 +57,7 @@ class SunInflux(object):
                     + 0.50572 * (6.07995 + el) ** -1.6364
             )
             air_mass_attenuation = (
-                    (1. - self.A * altitude) * 0.7 ** air_mass_revised ** 0.678
+                    (1. - self.A * altitude) * 0.7 ** (air_mass_revised ** 0.678)
                     + self.A * altitude
             )
 
@@ -113,17 +115,17 @@ class SunInflux(object):
         """
         Datetime generator increases by 1 hr
         :param from_date:
-        :param to_date:
+        :param to_date: may be empty if integration over one hour from from_date
         :param t_delta: time delta in minutes, must be equal time intervals
         between from_date and to_date
         :return: iterable
         """
+        to_date = to_date if to_date else from_date + timedelta(hours=1)
         diff = (to_date - from_date).total_seconds() / 60
         assert diff % t_delta == 0, "Unequal intervals between from and to!"
-        to_date = to_date if to_date else from_date
         while from_date <= to_date:
             yield from_date
-            from_date = from_date + timedelta(minutes=t_delta)
+            from_date += timedelta(minutes=t_delta)
 
     @staticmethod
     def _mean_hours(
@@ -148,31 +150,29 @@ class SunInflux(object):
         """
         Integrates the energies over time defined by from_data and to_date
         :param from_date:
-        :param to_date: may be empty if integration over one hour from from_date
+        :param to_date:
         :return:
+        accumulated energy on the ground in units of J m⁻2 &
+        on the PV panels in units of kWh in the period from_date until to_date
         """
         panels = list()
         powers = list()
-        t_delta: int = 12
+        t_delta: int = 12  # minutes
 
-        for item in self._date_generator(
-                from_date=from_date,
-                to_date=to_date,
-                t_delta=t_delta
-        ):
+        for item in self._date_generator(from_date=from_date,
+                                         to_date=to_date,
+                                         t_delta=t_delta):
             res = self.sun_parameter(dateandtime=item)[item]
             powers.append(res['sun']['power'])
             panels.append(res['panels'])
 
         if to_date:
             accumulated = self._mean_hours(
-                powers,
-                t_delta=t_delta
-            )
+                p=powers,
+                t_delta=t_delta)
             panels_all = self._mean_hours(
-                panels,
-                t_delta=t_delta
-            )
+                p=panels,
+                t_delta=t_delta)
         else:
             accumulated = powers[0]
             panels_all = panels[0]

@@ -29,7 +29,7 @@ from datetime import datetime
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 # internal
-from ecmwf_calculate import SunInflux
+from sun_influx import SunInflux
 from fronius_aux import get_secret
 
 # Logging Format
