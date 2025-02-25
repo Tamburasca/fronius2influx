@@ -100,7 +100,7 @@ def main(
             )
         )
         # success, match file size(s)
-        print(f"File size matched: {results.rc}")
+        print(f"File '{results.target}' size matched: {results.rc}")
         if not results.target:
             continue
 
@@ -115,8 +115,8 @@ def main(
             os.system("renice -n 19 -p {} >/dev/null".format(p.pid))
             ps.append(p)
             qs.append(queue)
-            logging.debug("Number of alive processes: {}"
-                          .format(sum([i.is_alive() for i in ps])))
+            print("Number of alive processes: {}"
+                  .format(sum([i.is_alive() for i in ps])))
         else:
             date_creation_string, res = extract(target=results.target)
             dict_x = collect(res)
@@ -124,8 +124,6 @@ def main(
     for q in qs:  # collecting from queue
         date_creation_string, res = q.get()
         dict_x = collect(res)
-
-    # print(json.dumps(dict_x, indent=2))
 
     with open(DATA_FILE, "w") as jsonFile:
         if os.getuid() == 0:  # chmod only if root

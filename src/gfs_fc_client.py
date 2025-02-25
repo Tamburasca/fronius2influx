@@ -291,7 +291,7 @@ class Client(object):
         # continually hits the site over the threshold.
         # source: ncep.pmb.dataflow@noaa.gov (Brian)
         # Hence, configure the sleep argument accordingly!
-        sleep(1.)
+        sleep(5.)
 
         return dix
 
@@ -370,7 +370,7 @@ class Client(object):
             else:
                 print("No filter applied.")
             # end for loop item number each url
-            print("\n")
+            # print("\n")
         # end for loop url
 
         return url_download
