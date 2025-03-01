@@ -1,7 +1,7 @@
-# Monitoring a PV Infrastructure by Fronius
+# Monitoring a Fronius Photo Voltaic Infrastructure
 
-Request monitoring data from a Fronius PV inverter's Rest API foreward and 
-store it in an InfluxDB for visualization in Grafana. The current application 
+Request monitoring data from a Fronius PV inverter's Rest API, foreward and 
+store it in an InfluxDB for visualization in Grafana. Current application 
 collects the most fundamental Fronius inverter data serving for a basic setup. 
 If your 
 installation is much different or more advanced, some extra work may be reqired,
@@ -11,9 +11,11 @@ Furthermore, weather forecasts, i.e. the "Surface short-wave (solar) radiation
 downwards", are downloaded from the
 [European Centre for Medium-Range Weather Forecasts (ECMWF)]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
 in order to predict the (day-by-day) energy to be expected by the PV installation 
-for the upcoming 10 days. In parallel the same data is downloaded from the GFS 
-of NCEP (NOAA). This data comprises a 16-day forecast with a temporal resolution
-of 1 hr for the first 120 hrs of each forecast and a resolution of 3 hrs. 
+for the upcoming 10 days. In parallel the same data is downloaded from the 
+[Global Forecast System](https://www.nco.ncep.noaa.gov/pmb/products/gfs/)  
+of NCEP (NOAA). Latter dataset comprises a 16-day forecast with a 1 hr 
+temporal resolution
+for the first 120 hrs and a resolution of 3 hrs. 
 thereafter. The spatial resolution of the GFS data is 0°.11 $\equiv$ 12 km.
 
 # Fronius Endpoints 
@@ -75,7 +77,9 @@ and
 
 # Wallbox: Wattpilot
 Thanks to [Wattpilot](https://github.com/joscha82/wattpilot)
-we implemented parts of their coding to account for monitoring the wallbox.
+we implemented parts of their coding to account for monitoring the 
+energy consumption of the wallbox. This implementation is not thoroughly 
+tested yet in the absence of an electric car :flushed:
 
 # Caveat
 The current setup 
