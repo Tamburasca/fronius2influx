@@ -53,6 +53,7 @@
               "mode": "off"
             }
           },
+          "displayName": "Downward short-wave solar radiation energy",
           "fieldMinMax": false,
           "mappings": [],
           "thresholds": {
@@ -162,6 +163,7 @@
               "mode": "off"
             }
           },
+          "displayName": "Downward short-wave solar radiation energy",
           "fieldMinMax": false,
           "mappings": [],
           "thresholds": {
@@ -216,13 +218,15 @@
           "placement": "bottom",
           "showLegend": true
         },
-        "orientation": "auto",
+        "orientation": "vertical",
         "showValue": "auto",
         "stacking": "none",
+        "text": {},
         "tooltip": {
           "mode": "single",
           "sort": "none"
         },
+        "xField": "Time",
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
@@ -257,6 +261,6 @@
   "timezone": "browser",
   "title": "EnergyForecast",
   "uid": "fe8dybrwur4zkb",
-  "version": 21,
+  "version": 24,
   "weekStart": ""
 }

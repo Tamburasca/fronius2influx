@@ -141,7 +141,7 @@ def main(
     data = dict_x["Downward short-wave radiation flux:surface:instant:0"]
     datum = [datetime.strptime(i, '%Y%m%d%H%M') for i in data['time']]
     values = [i for i in data['value']]
-    records: list = list()
+    records = list()
 
     csv_file_io = open("{}/solar_exp_power_gfs.csv".format(DATA_DIR), "w")
     csv_file_io.write(
@@ -155,7 +155,6 @@ def main(
         )
         # avarage adjecent neighbors and convert from Watt to Joule times
         # period of time in unit of hours
-        # ToDo: rethink this line of coding!!!
         forecasted_flux = ((values[i] + values[i + 1]) * 1800 *
                            (datum[i + 1] - datum[i]) / timedelta(hours=1))
 

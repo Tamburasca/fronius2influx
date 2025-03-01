@@ -57,7 +57,7 @@ materialized view runs once a day triggered by an influxDB scheduler.
 # Architecture 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 
 64 GB SD card) inside a Docker infrastructure, comprising four containers. 
-![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_1.png)
+![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_2.png)
 
     cd docker
     docker-compose build

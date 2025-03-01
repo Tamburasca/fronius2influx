@@ -132,10 +132,10 @@ class Client(object):
         """
         response = requests.get(url, params=params)
         if response.ok:
-            response_text = response.text
-            soup = BeautifulSoup(response_text, 'html.parser')
+            soup = BeautifulSoup(response.text, 'html.parser')
             # list of all downloadable index files per weather forecast time
-            return [url + node.get('href') for node in soup.find_all('a')
+            return [url + node.get('href')
+                    for node in soup.find_all('a')
                     if node.get('href').endswith(ext)]
         else:
             response.raise_for_status()
@@ -147,9 +147,7 @@ class Client(object):
         :return: None
         """
         try:
-            idx_list_available = self._get_url_paths(
-                url=self._get_url()
-            )
+            idx_list_available = self._get_url_paths(url=self._get_url())
             for step in STEPS:
                 if self._get_url(step=step) + ".idx" not in idx_list_available:
                     raise LookupError
