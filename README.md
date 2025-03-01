@@ -12,10 +12,9 @@ downwards", are downloaded from the
 [European Centre for Medium-Range Weather Forecasts (ECMWF)]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
 in order to predict the (day-by-day) energy to be expected by the PV installation 
 for the upcoming 10 days. In parallel the same data is downloaded from the 
-[Global Forecast System](https://www.nco.ncep.noaa.gov/pmb/products/gfs/)  
-of NCEP (NOAA). Latter dataset comprises a 16-day forecast with a 1 hr 
-temporal resolution
-for the first 120 hrs and a resolution of 3 hrs. 
+[Global Forecast System](https://www.nco.ncep.noaa.gov/pmb/products/gfs/) of 
+NCEP (NOAA). Latter dataset comprises a 16-day forecast with a 1 hr 
+temporal resolution for the first 120 hrs and a resolution of 3 hrs. 
 thereafter. The spatial resolution of the GFS data is 0°.11 $\equiv$ 12 km.
 
 # Fronius Endpoints 
