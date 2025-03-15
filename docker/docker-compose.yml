@@ -2,7 +2,7 @@ services:
 ################################################################################
 # Fronius database influxDB 2.7
 ################################################################################
-  fronius_influxdb2:
+  influx_fronius:
     image: "influxdb:2.7"
     container_name: &database-container-name influx_fronius
     networks:
@@ -25,7 +25,7 @@ services:
 ################################################################################
 # Fronius Grafana Dashboard
 ################################################################################
-  fronius_grafana:
+  grafana_fronius:
     image: "grafana/grafana:latest"
     container_name: grafana_fronius
     networks:
@@ -57,7 +57,7 @@ services:
       - influxdb_token_write
       - wallbox_token
     depends_on:
-      - fronius_influxdb2
+      - influx_fronius
     environment:
       INFLUXDB_HOST: *database-container-name
     env_file:
@@ -66,12 +66,12 @@ services:
 ################################################################################
 # ECMWF weather forecast testing cron in slim-python
 ################################################################################
-  forecast:
+  forecast2influx:
     build:
       context: ..
       dockerfile: ./docker/application/Dockerfile_forecast
     image: "forecast:0.2"
-    container_name: forecast
+    container_name: forecast2influx
 #    volumes:
 #      - ../src/data:/ecmwf/src/data
     networks:
@@ -80,7 +80,7 @@ services:
     secrets:
       - influxdb_token_write
     depends_on:
-      - fronius_influxdb2
+      - influx_fronius
     environment:
       INFLUXDB_HOST: *database-container-name
     env_file:
