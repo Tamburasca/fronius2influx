@@ -5,7 +5,8 @@ FROM python:3.12.7-slim
 WORKDIR /Fronius/
 
 # copy the content of the local src directory to the working directory
-COPY src/fronius*.py src/
+COPY src/fronius2influx.py src/
+COPY src/fronius_aux.py src/
 COPY src/wattpilot*.py src/
 COPY src/data/parameter.json src/data/
 COPY src/requirements.txt src/

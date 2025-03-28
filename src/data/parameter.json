@@ -70,5 +70,6 @@
         {"shortName": ["dswrf"], "typeOfLevel": "surface", "validity": "hour fcst"}
     ],
     "ignore_sun_down": true,
-    "debug": false
+    "debug": false,
+    "dry_run": false
 }

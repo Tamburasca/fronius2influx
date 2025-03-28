@@ -7,12 +7,14 @@ import pytz
 import os
 import sys
 import logging
+from timeit import default_timer
 from enum import Enum, EnumMeta
 from time import sleep
 from typing import Generator
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
+from influxdb_client.client.write_api import SYNCHRONOUS
 from requests import get
 from requests.exceptions import ConnectionError, HTTPError
 # internal imports
@@ -74,7 +76,8 @@ class FroniusEndpoints(
 
 
 class FroniusToInflux(object):
-    BACKOFF_INTERVAL = 5
+    BACKOFF_INTERVAL = 5  # GET request every BACKOFF_INTERVAL seconds
+    WRITE_CYCLE = 12  # write every WRITE_CYCLE th cycle
     SOLAR_CONSTANT = 1_361  # W m⁻²
     A = 0.00014  # constant / m⁻¹
 
@@ -85,11 +88,12 @@ class FroniusToInflux(object):
             parameter: dict,
             endpoints: list[str],
             wallbox: Wattpilot,
-            debug: bool = False
+            **kwargs
     ):
         self.client = client
         self.write = client.write_api(  # batch mode
-            write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
+            # write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
+            write_options=WriteOptions(SYNCHRONOUS)
         )
         self.endpoints = endpoints
         self.parameter = parameter
@@ -101,9 +105,9 @@ class FroniusToInflux(object):
             longitude=parameter['location']['longitude'],
             timezone=parameter['location']['timezone']
         )
-        self.debug = debug
         self.data: dict = dict()
         self.ignore_sun_down: bool = False
+        self.dry_run: bool = kwargs.get('dry_run', False)
 
     def get_float_or_zero(
             self,
@@ -318,9 +322,11 @@ class FroniusToInflux(object):
         flag_sun_is_down: bool = False
         flag_connection: bool = False
         flag_exception: bool = False
+        collected_data: list[dict[str, str | dict]] = list()
+        counter = 1
+
         try:
             while True:
-                collected_data: list[dict[str, str | dict]] = list()
                 try:
                     for url in self.endpoints:
                         result = get(url)
@@ -334,15 +340,27 @@ class FroniusToInflux(object):
                         collected_data.extend(
                             wattpilot_get(wallbox=self.wallbox)
                         )
-                    if self.debug:
-                        print(collected_data)
+
+                    if counter >= self.WRITE_CYCLE:
+                        if logging.DEBUG >= logging.root.level:
+                            print(collected_data)
+                        if not self.dry_run:
+                            start_time = default_timer()
+                            self.write.write(
+                                bucket="Fronius",
+                                org="Fronius",
+                                record=collected_data,
+                                write_precision='s'
+                            )
+                            logging.debug(
+                                "Time consumed for influxDB "
+                                "Sync Write API': {0:.2f} ms".format(
+                                    (default_timer() - start_time) * 1_000))
+                        collected_data.clear() # faster than assign new list
+                        counter = 1
                     else:
-                        self.write.write(
-                            bucket="Fronius",
-                            org="Fronius",
-                            record=collected_data,
-                            write_precision='s'
-                        )
+                        counter += 1
+
                     flag_sun_is_down = False
                     flag_connection = False
                     flag_exception = False
@@ -429,7 +447,7 @@ def main() -> None:
         parameter=parameter,
         endpoints=endpoints,
         wallbox=wallbox,
-        debug=parameter['debug']
+        dry_run=parameter['dry_run']
     )
     z.ignore_sun_down = parameter['ignore_sun_down']
     z.run()
