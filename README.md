@@ -86,7 +86,7 @@ considers photovoltaic modules on either side of the rooftop.
 For other cases, adjust the FLUX statements (in Grafana) appropriately, i.e.
 the setup is not generic.
 
-Advisory: 
+# Advisory 
 Currently - on a Raspberry PI 4 - influxDB is writing to an SD card. Its write
 cycle may be limited. The number of writes per time interval can be reduced by
 increasing the WRITE_CYCLE, e.g. to 12, such that data is cached and written
