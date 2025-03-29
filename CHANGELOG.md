@@ -1,5 +1,16 @@
 # Changelog
-## x.x.x (2025-xx-xx)
+## x.x.x (xxxx-xx-xx)
+### Added
+- Async version of the Fronius readout, where the client InfluxDBClientAsync is
+utilized. Turns out at least 2 times slower than the Sync version.
+### Changed
+- Data is cached and written to influxDB after WRITE_CYCLE=n in order to readuce
+SD card write cycles.
+### Fixed
+### Deprecated
+### Removed
+### Security
+## 1.2.0 (2025-03-27)
 ### Added
 ### Changed
 ### Fixed

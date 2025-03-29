@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import asyncio
 import json
 import math
 import pytz
@@ -13,8 +14,8 @@ from time import sleep
 from typing import Generator
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
-from influxdb_client import InfluxDBClient, WriteOptions
-from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
+# from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
 from requests.exceptions import ConnectionError, HTTPError
 # internal imports
@@ -76,25 +77,24 @@ class FroniusEndpoints(
 
 
 class FroniusToInflux(object):
-    BACKOFF_INTERVAL = 5  # GET request every BACKOFF_INTERVAL seconds
-    WRITE_CYCLE = 12  # write every WRITE_CYCLE th cycle
+    BACKOFF_INTERVAL = 5
+    WRITE_CYCLE = 12 # write every WRITE_CYCLEth cycle
     SOLAR_CONSTANT = 1_361  # W m⁻²
     A = 0.00014  # constant / m⁻¹
 
     def __init__(
             self,
             *,
-            client: InfluxDBClient,
+            influxdb_parameter: dict,
             parameter: dict,
             endpoints: list[str],
             wallbox: Wattpilot,
             **kwargs
     ):
-        self.client = client
-        self.write = client.write_api(  # batch mode
-            # write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
-            write_options=WriteOptions(SYNCHRONOUS)
-        )
+        self.influxdb_parameter = influxdb_parameter
+        # self.write = client.write_api()  # batch mode
+#            write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
+#        )
         self.endpoints = endpoints
         self.parameter = parameter
         self.wallbox = wallbox
@@ -318,7 +318,7 @@ class FroniusToInflux(object):
             else:
                 return []
 
-    def run(self) -> None:
+    async def run(self) -> None:
         flag_sun_is_down: bool = False
         flag_connection: bool = False
         flag_exception: bool = False
@@ -346,15 +346,20 @@ class FroniusToInflux(object):
                             print(collected_data)
                         if not self.dry_run:
                             start_time = default_timer()
-                            self.write.write(
-                                bucket="Fronius",
-                                org="Fronius",
-                                record=collected_data,
-                                write_precision='s'
-                            )
+                            async with InfluxDBClientAsync(
+                                    **self.influxdb_parameter
+                            ) as influxdb_client:
+                                write_api = influxdb_client.write_api()
+                                # ToDo evaluate result
+                                result = await write_api.write(
+                                    bucket="Fronius",
+                                    org="Fronius",
+                                    record=collected_data,
+                                    write_precision='s'
+                                )
                             logging.debug(
                                 "Time consumed for influxDB "
-                                "Sync Write API': {0:.2f} ms".format(
+                                "Async Write API': {0:.2f} ms".format(
                                     (default_timer() - start_time) * 1_000))
                         collected_data.clear() # faster than assign new list
                         counter = 1
@@ -397,7 +402,7 @@ class FroniusToInflux(object):
             sys.exit(os.EX_OSERR)
 
 
-def main() -> None:
+async def main() -> None:
     wallbox: Wattpilot = None
 
     parameter_file = "{}/data/parameter.json".format(
@@ -420,13 +425,13 @@ def main() -> None:
     influxdb_token_write = get_secret('INFLUXDB_TOKEN_FILE',
                                       os.getenv('INFLUXDB_TOKEN'))
 
-    client = InfluxDBClient(
-        url="http://{0}:{1}".format(influxdb_host,
+    influxdb_parameter = {
+        "url": "http://{0}:{1}".format(influxdb_host,
                                     influxdb_port),
-        token=influxdb_token_write,
-        org=parameter['influxdb']['organization'],
-        verify_ssl=parameter['influxdb']['verify_ssl']
-    )
+        "token": influxdb_token_write,
+        "org": parameter['influxdb']['organization'],
+        "verify_ssl": parameter['influxdb']['verify_ssl']
+    }
 
     endpoints = FroniusEndpoints.get_endpoints(
         host=parameter['server']['host'],
@@ -444,15 +449,15 @@ def main() -> None:
         wallbox.connect()
 
     z = FroniusToInflux(
-        client=client,
+        influxdb_parameter=influxdb_parameter,
         parameter=parameter,
         endpoints=endpoints,
         wallbox=wallbox,
         dry_run=parameter['dry_run']
     )
     z.ignore_sun_down = parameter['ignore_sun_down']
-    z.run()
+    await z.run()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
