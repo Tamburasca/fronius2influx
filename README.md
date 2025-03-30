@@ -28,9 +28,9 @@ Adjust fronius host and path accordingly (see
     "http://<host-ip>/<path>/GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
     "http://<host-ip>/<path>/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
 
-There's also a version available that performed asynchronous writes to the 
-influxDB. It can be enabled, but it turned out to be >2 times slower than the
-syncronous version.
+There's also a version available that utilizes the asynchronous client of the 
+influxDB. It could be enabled, but it turned out to be >2 times slower than the
+synchronous version.
 
 # influxDB v2
 All monitoring data is stored in bucket "Fronius", comprising the following measurements:

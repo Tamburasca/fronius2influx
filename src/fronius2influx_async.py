@@ -15,7 +15,6 @@ from typing import Generator
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
-# from influxdb_client import InfluxDBClient, WriteOptions
 from requests import get
 from requests.exceptions import ConnectionError, HTTPError
 # internal imports
@@ -427,7 +426,7 @@ async def main() -> None:
 
     influxdb_parameter = {
         "url": "http://{0}:{1}".format(influxdb_host,
-                                    influxdb_port),
+                                       influxdb_port),
         "token": influxdb_token_write,
         "org": parameter['influxdb']['organization'],
         "verify_ssl": parameter['influxdb']['verify_ssl']
