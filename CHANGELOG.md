@@ -6,6 +6,15 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.3.0 (2025-04-10)
+### Added
+- forecast provided by open-meteo
+### Changed
+- solar flux added diffuse radiation (sun_influx.py)
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.2.0 (2025-03-27)
 ### Added
 - Async version of Fronius readout, where the client InfluxDBClientAsync is

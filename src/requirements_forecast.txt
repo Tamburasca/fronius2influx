@@ -6,3 +6,4 @@ numpy>=2.2.3
 astral>=3.2
 cryptography>=43.0.3
 bs4>=0.0.2
+requests>=2.32.3

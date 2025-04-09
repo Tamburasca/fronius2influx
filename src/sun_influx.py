@@ -6,7 +6,8 @@ from typing import Generator
 
 
 class SunInflux(object):
-    SOLAR_CONSTANT = 1_361  # W m⁻²
+    # The ASTM G-173 standard measures solar intensity over the band 280 to 4000 nm
+    SOLAR_CONSTANT = 1_347.9  # W m⁻²
     A = 0.00014  # constant / m⁻¹
 
     def __init__(
@@ -36,22 +37,41 @@ class SunInflux(object):
     def sun_parameter(
             self,
             dateandtime: datetime
-    ) -> dict[datetime, dict[str, float]]:
+    ) -> dict[datetime, dict[str, dict[str, float]]]:
         """
         Calculates the energy acquired by solar irradiation on earth's ground
-        and PV pnanels, in units of W * m**-2 and W.
+        and PV pnanels, in units of W * m**-2 and W at dateandtime [UTC]
         Latter being calculated from the configuration of each panel group
         :param dateandtime:
         :return: solar data
         """
+        result = {
+            dateandtime: {
+                "sun": {
+                    "power": 0.
+                },
+                "panels": {
+                    "direct": 0.,
+                    "diffuse": 0.
+                }
+            }
+        }
+        # diffuse sunlight on all panels
+        for _, value in self.parameter['housetop'].items():
+            result[dateandtime]['panels']['diffuse'] += (
+                    value['area']['value']
+                    * value['efficiency']['value']
+                    * math.sin(value['inclination']['value'])
+            )
+        # sun elevation
         el = elevation(observer=self.location.observer,
                        dateandtime=dateandtime,
                        with_refraction=True)
         if el > 0:
             altitude = self.parameter["location"]["altitude"]["value"]
+            # sun azimuth
             az = azimuth(observer=self.location.observer,
                          dateandtime=dateandtime)
-
             air_mass_revised = 1. / (
                     math.cos(math.radians(90. - el))
                     + 0.50572 * (6.07995 + el) ** -1.6364
@@ -60,23 +80,14 @@ class SunInflux(object):
                     (1. - self.A * altitude) * 0.7 ** (air_mass_revised ** 0.678)
                     + self.A * altitude
             )
-
-            result = {
-                dateandtime: {
-                    "sun": {
-                        "elevation": el,
-                        "azimuth": az,
-                        "power": (self.SOLAR_CONSTANT
-                                  * math.sin(math.radians(el))
-                                  * air_mass_attenuation),  # ToDo: air mass to be considered?
-                                  # * 1.),
-                        "air_mass_attenuation": air_mass_attenuation
-                    },
-                    "panels": 0.
-                }
-            }
-
-            for item, value in self.parameter['housetop'].items():
+            result[dateandtime]['sun']['elevation'] = el
+            result[dateandtime]['sun']['azimuth'] = az
+            result[dateandtime]['sun']['air_mass_attenuation'] = air_mass_attenuation
+            result[dateandtime]['sun']['power'] = (self.SOLAR_CONSTANT
+                                                   * math.sin(math.radians(el))
+                                                   * air_mass_attenuation)
+            # direct sunlight on all panels
+            for _, value in self.parameter['housetop'].items():
                 # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
                 r = max(
                     math.cos(math.radians(el))
@@ -87,24 +98,15 @@ class SunInflux(object):
                     0.
                 )
                 # incidence_angle_sun = math.degrees(math.asin(r))
-                result[dateandtime]["panels"] += (
+                result[dateandtime]['panels']['direct'] += (
                         self.SOLAR_CONSTANT
                         * air_mass_attenuation
                         * value['area']['value']
                         * value['efficiency']['value']
                         * r
                 )
-            return result
 
-        else:
-            return {
-                dateandtime: {
-                    "sun": {
-                        "power": 0.
-                    },
-                    "panels": 0.
-                }
-            }
+        return result
 
     @staticmethod
     def _date_generator(
@@ -136,27 +138,31 @@ class SunInflux(object):
         Sum over means of all adjacent neighbors in list p
         :param p:
         :param t_delta: intervals in minutes
-        :return: power in units of kWh
+        :return: energy Wh
         """
         return (t_delta / 60 *
                 sum([(p[i] + p[i + 1]) / 2 for i in range(len(p) - 1)]))
 
-    def calc(
+    def calc_modified(
             self,
             *,
             from_date: datetime,
             to_date: datetime = None
-    ) -> tuple[float, float]:
+    ) -> tuple[float, ...]:
         """
         Integrates the energies over time defined by from_data and to_date
         :param from_date:
         :param to_date:
         :return:
-        accumulated energy on the ground in units of J m⁻2 &
-        on the PV panels in units of kWh in the period from_date until to_date
+        * accumulated energy on the ground in units of Wm⁻²
+        * direct sunlight on the PV panels in units of Wh in the period
+        from_date until to_date
+        * diffuse sunlight on the (tilted) PV panels in units of hm²
+        in the period from_date until to_date, to be multiplied by Wm⁻²
         """
-        panels = list()
         powers = list()
+        panels = list()
+        diffuse = list()
         t_delta: int = 12  # minutes
 
         for item in self._date_generator(from_date=from_date,
@@ -164,7 +170,8 @@ class SunInflux(object):
                                          t_delta=t_delta):
             res = self.sun_parameter(dateandtime=item)[item]
             powers.append(res['sun']['power'])
-            panels.append(res['panels'])
+            panels.append(res['panels']['direct'])
+            diffuse.append(res['panels']['diffuse'])
 
         if to_date:
             accumulated = self._mean_hours(
@@ -173,9 +180,14 @@ class SunInflux(object):
             panels_all = self._mean_hours(
                 p=panels,
                 t_delta=t_delta)
+            diffuse_all = self._mean_hours(
+                p=diffuse,
+                t_delta=t_delta)
         else:
             accumulated = powers[0]
             panels_all = panels[0]
+            diffuse_all = diffuse[0]
 
-        return (accumulated * 3_600,
-                panels_all / 1_000)
+        return (accumulated,
+                panels_all,
+                diffuse_all)

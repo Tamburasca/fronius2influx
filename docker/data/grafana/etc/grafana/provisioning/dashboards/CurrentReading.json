@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 6,
+  "id": 14,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -40,7 +40,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           },
@@ -60,7 +61,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "red"
+                      "color": "red",
+                      "value": null
                     }
                   ]
                 }
@@ -79,7 +81,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "red"
+                      "color": "red",
+                      "value": null
                     }
                   ]
                 }
@@ -98,7 +101,12 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "yellow"
+                      "color": "yellow",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 6220
                     }
                   ]
                 }
@@ -117,7 +125,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "red"
+                      "color": "red",
+                      "value": null
                     }
                   ]
                 }
@@ -156,11 +165,11 @@
             "type": "influxdb",
             "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
           },
-          "query": "//\n// Power Current\n//\n\nimport \"experimental\"\nimport \"math\"\nimport \"date\"\nimport \"strings\"\n\nReLU = (x) => if x > 0.0 then x else 0.0\n\nfieldsCommon = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\", \"PAC\"]\nfieldsBattery = [\"Voltage_DC\", \"Current_DC\", \"StateOfCharge_Relative\"]\nrES = 6 // time to aggregate over (s), duration returns ns\n\nbasic = from(bucket: \"Fronius\")\n  |> range(start: -1m, stop: date.truncate(t: now(), unit: duration(v: rES * 1000000000)))\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"Battery\" and contains(value: r._field, set: fieldsBattery)) or\n                       (r[\"_measurement\"] == \"CommonInverterData\" and contains(value: r._field, set: fieldsCommon)) or\n                       (r[\"_measurement\"] == \"SmartMeter\" and r[\"_field\"] == \"PowerReal_P_Sum\")\n    )\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: last, createEmpty: false)\n  |> last()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\", \"_measurement\"], valueColumn: \"_value\")\n  |> rename(columns: {\n    PowerReal_P_Sum_SmartMeter: \"PowerNet\",\n    PAC_CommonInverterData: \"PowerAC\",\n    StateOfCharge_Relative_Battery: \"Battery Loading Level\"\n    })\n  |> map(fn: (r) => ({r with PowerBattery: -r.Voltage_DC_Battery * r.Current_DC_Battery,\n                             SolarDC: r.IDC_CommonInverterData * r.UDC_CommonInverterData\n                                      + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData,\n                             Consumed: ReLU(x: r.PowerAC\n                                       + r.PowerNet)\n    }))\n  |> keep(columns:[\"_time\",\n                   \"SolarDC\",\n                   \"Consumed\",\n                   \"PowerNet\",\n                   \"PowerBattery\"\n//                   \"Battery Loading Level\"\n])\n  |> experimental.unpivot()\n\nbasic\n  |> map(fn: (r) => ({r with _value: math.trunc(x: r._value)}))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field,\n    u: if r._field == \"PowerBattery\" and r._value <= 0. then \"Battery Charging\" else \"Battery Discharging\",\n    t: \"PowerBattery\")}))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field,\n    u: if r._field == \"PowerNet\" and r._value <= 0. then \"Net To\" else \"Net From\",\n    t: \"PowerNet\")}))\n  |> map(fn: (r) => ({r with _value: if r._field == \"Battery Charging\" then math.abs(x: r._value) else r._value}))\n  |> map(fn: (r) => ({r with _value: if r._field == \"Net To\" then math.abs(x: r._value) else r._value}))\n  |> yield()",
+          "query": "//\n// Power Current\n//\n\nimport \"experimental\"\nimport \"math\"\nimport \"date\"\nimport \"strings\"\n\nReLU = (x) => if x > 0.0 then x else 0.0\n\nfieldsCommon = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\", \"PAC\"]\nfieldsBattery = [\"Voltage_DC\", \"Current_DC\", \"StateOfCharge_Relative\"]\nrES = 60 // time to aggregate over (s), duration returns ns\n\nbasic = from(bucket: \"Fronius\")\n  |> range(start: -65s)\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"Battery\" and contains(value: r._field, set: fieldsBattery)) or\n                       (r[\"_measurement\"] == \"CommonInverterData\" and contains(value: r._field, set: fieldsCommon)) or\n                       (r[\"_measurement\"] == \"SmartMeter\" and r[\"_field\"] == \"PowerReal_P_Sum\")\n    )\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean, createEmpty: false) // , timeSrc: \"_start\")\n  |> last()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\", \"_measurement\"], valueColumn: \"_value\")\n  |> rename(columns: {\n    PowerReal_P_Sum_SmartMeter: \"PowerNet\",\n    PAC_CommonInverterData: \"PowerAC\",\n    StateOfCharge_Relative_Battery: \"Battery Loading Level\"\n    })\n  |> map(fn: (r) => ({r with PowerBattery: -r.Voltage_DC_Battery * r.Current_DC_Battery,\n                             SolarDC: r.IDC_CommonInverterData * r.UDC_CommonInverterData\n                                      + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData,\n                             Consumed: ReLU(x: r.PowerAC\n                                       + r.PowerNet)\n    }))\n  |> keep(columns:[\"_time\",\n                   \"SolarDC\",\n                   \"Consumed\",\n                   \"PowerNet\",\n                   \"PowerBattery\"\n//                   \"Battery Loading Level\"\n])\n  |> experimental.unpivot()\n\nbasic\n  |> map(fn: (r) => ({r with _value: math.trunc(x: r._value)}))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field,\n    u: if r._field == \"PowerBattery\" and r._value <= 0. then \"Battery Charging\" else \"Battery Discharging\",\n    t: \"PowerBattery\")}))\n  |> map(fn: (r) => ({r with _field: strings.replaceAll(v: r._field,\n    u: if r._field == \"PowerNet\" and r._value <= 0. then \"Net To\" else \"Net From\",\n    t: \"PowerNet\")}))\n  |> map(fn: (r) => ({r with _value: if r._field == \"Battery Charging\" then math.abs(x: r._value) else r._value}))\n  |> map(fn: (r) => ({r with _value: if r._field == \"Net To\" then math.abs(x: r._value) else r._value}))\n  |> yield()",
           "refId": "A"
         }
       ],
-      "title": "Current Power Reading",
+      "title": "Current Power Reading (1 min time delayed)",
       "transformations": [],
       "type": "gauge"
     },
@@ -183,15 +192,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red"
+                "color": "red",
+                "value": null
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 10
               },
               {
                 "color": "green",
-                "value": 80
+                "value": 90
               }
             ]
           },
@@ -229,7 +239,7 @@
             "type": "influxdb",
             "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
           },
-          "query": "//\n// Battery Loading Level Current\n//\n\nfrom(bucket: \"Fronius\")\n  |> range(start: -1m)\n  |> filter(fn: (r) => r._measurement == \"Battery\" \n  and r._field == \"StateOfCharge_Relative\") \n  // or r._field == \"Temperature_Cell\"))\n  |> last()",
+          "query": "//\n// Battery Loading Level Current\n//\n\nfrom(bucket: \"Fronius\")\n  |> range(start: -65s)\n  |> filter(fn: (r) => r._measurement == \"Battery\" \n  and r._field == \"StateOfCharge_Relative\") \n  // or r._field == \"Temperature_Cell\"))\n  |> last()",
           "refId": "A"
         }
       ],
@@ -241,15 +251,15 @@
   "refresh": "5s",
   "schemaVersion": 39,
   "tags": [
-    "Production"
+    "QA"
   ],
   "templating": {
     "list": [
       {
         "current": {
           "selected": false,
-          "text": "22",
-          "value": "22"
+          "text": "16",
+          "value": "16"
         },
         "datasource": {
           "type": "influxdb",
@@ -277,7 +287,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "Current Reading",
-  "uid": "fb002409-5864-4d30-810e-45cdd43f70c1",
-  "version": 74,
+  "uid": "d1872836-b7b3-4eea-a2b2-989134ba62ce",
+  "version": 14,
   "weekStart": ""
 }

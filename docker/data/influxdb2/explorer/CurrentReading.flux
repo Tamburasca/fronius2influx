@@ -11,15 +11,15 @@ ReLU = (x) => if x > 0.0 then x else 0.0
 
 fieldsCommon = ["UDC", "IDC", "UDC_2", "IDC_2", "PAC"]
 fieldsBattery = ["Voltage_DC", "Current_DC", "StateOfCharge_Relative"]
-rES = 6 // time to aggregate over (s), duration returns ns
+rES = 60 // time to aggregate over (s), duration returns ns
 
 basic = from(bucket: "Fronius")
-  |> range(start: -1m, stop: date.truncate(t: now(), unit: duration(v: rES * 1000000000)))
+  |> range(start: -65s)
   |> filter(fn: (r) => (r["_measurement"] == "Battery" and contains(value: r._field, set: fieldsBattery)) or
                        (r["_measurement"] == "CommonInverterData" and contains(value: r._field, set: fieldsCommon)) or
                        (r["_measurement"] == "SmartMeter" and r["_field"] == "PowerReal_P_Sum")
     )
-  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: last, createEmpty: false)
+  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean, createEmpty: false) // , timeSrc: "_start")
   |> last()
   |> pivot(rowKey: ["_time"], columnKey: ["_field", "_measurement"], valueColumn: "_value")
   |> rename(columns: {
@@ -37,8 +37,9 @@ basic = from(bucket: "Fronius")
                    "SolarDC",
                    "Consumed",
                    "PowerNet",
-                   "PowerBattery",
-                   "Battery Loading Level"])
+                   "PowerBattery"
+//                   "Battery Loading Level"
+])
   |> experimental.unpivot()
 
 basic

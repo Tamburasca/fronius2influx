@@ -23,6 +23,8 @@ COPY src/fronius_aux.py /app/src/
 COPY src/ecmwf_download.py /app/src/
 # application GFS
 COPY src/gfs_fc_*.py /app/src/
+# application open-meteo
+COPY src/open-meteo2influx.py /app/src/
 # data
 COPY src/data/parameter.json /app/src/data/
 

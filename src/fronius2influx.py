@@ -78,7 +78,8 @@ class FroniusEndpoints(
 class FroniusToInflux(object):
     BACKOFF_INTERVAL = 5  # GET request every BACKOFF_INTERVAL seconds
     WRITE_CYCLE = 12  # write every WRITE_CYCLE th cycle
-    SOLAR_CONSTANT = 1_361  # W m⁻²
+    # The ASTM G-173 standard measures solar intensity over the band 280 to 4000 nm
+    SOLAR_CONSTANT = 1_347.9  # W m⁻²
     A = 0.00014  # constant / m⁻¹
 
     def __init__(
@@ -246,8 +247,8 @@ class FroniusToInflux(object):
         el = elevation(observer=self.location.observer,
                        with_refraction=True)
         if el > 0:
-            az = azimuth(observer=self.location.observer)
             altitude = self.parameter["location"]["altitude"]["value"]
+            az = azimuth(observer=self.location.observer)
             # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
             # air_mass = 1. / math.cos(math.radians(90. - el))
             # The Kasten and Young formula was originally given in terms of
@@ -257,7 +258,7 @@ class FroniusToInflux(object):
                     + 0.50572 * (6.07995 + el) ** -1.6364
             )
             air_mass_attenuation = (
-                    (1. - self.A * altitude) * 0.7 ** air_mass_revised ** 0.678
+                    (1. - self.A * altitude) * 0.7 ** (air_mass_revised ** 0.678)
                     + self.A * altitude
             )
             # Direct beam intensity / W m⁻²
@@ -340,7 +341,8 @@ class FroniusToInflux(object):
                         collected_data.extend(
                             wattpilot_get(wallbox=self.wallbox)
                         )
-
+                    # 125 < time < 250 ms for querying all Rest APIs
+                    # and Websockets
                     if counter >= self.WRITE_CYCLE:
                         if logging.DEBUG >= logging.root.level:
                             print(collected_data)

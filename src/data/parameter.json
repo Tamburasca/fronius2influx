@@ -13,7 +13,7 @@
     "housetop": {
         "1": {
             "orientation": {
-                "value": 236.0,
+                "value": 237.0,
                 "unit": "degree"
             },
             "inclination": {
@@ -31,7 +31,7 @@
         },
         "2": {
             "orientation": {
-                "value": 56.0,
+                "value": 57.0,
                 "unit": "degree"
             },
             "inclination": {

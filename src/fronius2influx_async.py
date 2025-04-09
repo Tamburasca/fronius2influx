@@ -76,10 +76,11 @@ class FroniusEndpoints(
 
 
 class FroniusToInflux(object):
-    BACKOFF_INTERVAL = 5
+    BACKOFF_INTERVAL = 5  # query every BACKOFF_INTERVAL seconds
     WRITE_CYCLE = 12 # write every WRITE_CYCLEth cycle
-    SOLAR_CONSTANT = 1_361  # W m⁻²
-    A = 0.00014  # constant / m⁻¹
+    # The ASTM G-173 standard measures solar intensity over the band 280 to 4000 nm
+    SOLAR_CONSTANT = 1_347.9  # W m⁻²
+    #    A = 0.00014  # constant / m⁻¹
 
     def __init__(
             self,
@@ -339,7 +340,8 @@ class FroniusToInflux(object):
                         collected_data.extend(
                             wattpilot_get(wallbox=self.wallbox)
                         )
-
+                    # 125 < time < 250 ms for querying all Rest APIs
+                    # and Websockets
                     if counter >= self.WRITE_CYCLE:
                         if logging.DEBUG >= logging.root.level:
                             print(collected_data)
@@ -349,7 +351,7 @@ class FroniusToInflux(object):
                                     **self.influxdb_parameter
                             ) as influxdb_client:
                                 write_api = influxdb_client.write_api()
-                                # ToDo evaluate result
+                                # ToDo yet to evaluate result
                                 result = await write_api.write(
                                     bucket="Fronius",
                                     org="Fronius",

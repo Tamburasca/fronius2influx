@@ -16,6 +16,8 @@ for the upcoming 10 days. In parallel the same data is downloaded from the
 NCEP (NOAA). Latter dataset comprises a 16-day forecast with a 1 hr 
 temporal resolution for the first 120 hrs and a resolution of 3 hrs. 
 thereafter. The spatial resolution of the GFS data is 0°.11 $\equiv$ 12 km.
+Moreover, an additional forecast (direct and diffuse sunlight) is download from 
+[Free Weather API](https://open-meteo.com/).
 
 # Fronius Endpoints 
 This application collects data from the following endpoints (Symo GEN24 6.0).

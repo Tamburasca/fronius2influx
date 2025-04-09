@@ -149,10 +149,12 @@ def main(
     )
 
     for i in range(len(datum) - 1):
-        r1, r2 = z.calc(
+        t = z.calc_modified(
             from_date=datum[i],
             to_date=datum[i + 1]
         )
+        r1 = t[0] * 3_600  # convert W to J
+        r2 = t[1] / 1_000  # convert to kWh
         # avarage adjecent neighbors and convert from Watt to Joule times
         # period of time in unit of hours
         forecasted_flux = ((values[i] + values[i + 1]) * 1800 *

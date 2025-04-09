@@ -28,10 +28,15 @@ services:
   grafana_fronius:
     image: "grafana/grafana:latest"
     container_name: grafana_fronius
+    # ToDo test plugin installation
+    environment:
+      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
     networks:
       fronius_net:
     ports:
       - "3001:3000"
+# for testing on host
+#    network_mode: host
     volumes:
       - ./data/grafana/etc/grafana:/etc/grafana
       - ./data/grafana/var/lib/grafana:/var/lib/grafana

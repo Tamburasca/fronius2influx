@@ -226,10 +226,13 @@ def main(
     )
 
     for i in range(len(datum) - 1):
-        r1, r2 = z.calc(
+        t = z.calc_modified(
             from_date=datum[i],
             to_date=datum[i+1]
         )
+        r1 = t[0] * 3_600  # convert W to J
+        r2 = t[1] / 1_000  # convert to kWh
+
         # may be slightly negative by calculations of ECMWF (accumulated ssrd)!
         forecasted_flux = max(values[i + 1] - values[i], 0.)
 
