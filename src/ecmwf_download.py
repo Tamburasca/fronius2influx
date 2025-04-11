@@ -140,7 +140,7 @@ def retrieve_ecmwf(
         )
     )
 
-    log_file = "{}/forecast.json".format(DATA_DIR)
+    log_file = "{}/forecast_ecmwf.json".format(DATA_DIR)
     with open(log_file, "w") as jsonFile:
 #        if os.getuid() == 0:  # chmod only if root
 #            os.chmod(log_file, 0o666)  # docker owner is root, anyone can delete
@@ -220,7 +220,7 @@ def main(
     values = [i for i in data['value']]
     records: list = list()
 
-    csv_file_io = open("{}/solar_exp_power.csv".format(DATA_DIR), "w")
+    csv_file_io = open("{}/solar_exp_power_ecmwf.csv".format(DATA_DIR), "w")
     csv_file_io.write(
         "{}, {}\n".format("date (UTC)", "expected solar energy (kWh)")
     )

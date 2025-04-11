@@ -19,7 +19,7 @@ MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
 SOURCE_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_DIR = "{}/data".format(SOURCE_DIR)
-DATA_FILE = "{}/forecast_gfs.json".format(DATA_DIR)
+DATA_FILE = "{}/forecast.json".format(DATA_DIR)
 config_file = "{}/parameter.json".format(DATA_DIR)
 with open(config_file, "r") as config_handle:
     CONFIG = json.load(config_handle)

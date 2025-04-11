@@ -6,6 +6,16 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.4.0 (2025-04-11)
+### Added
+- HTTP RestAPI to read the Fronius inverted directly (runs with 
+fronius2influx.py in one docker container)
+### Changed
+### Fixed
+### Deprecated
+### Removed
+- Async version of fronius2influx.py (slower than sync version)
+### Security
 ## 1.3.0 (2025-04-10)
 ### Added
 - forecast provided by open-meteo

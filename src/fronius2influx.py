@@ -92,10 +92,6 @@ class FroniusToInflux(object):
             **kwargs
     ):
         self.client = client
-        self.write = client.write_api(  # batch mode
-            # write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
-            write_options=WriteOptions(SYNCHRONOUS)
-        )
         self.endpoints = endpoints
         self.parameter = parameter
         self.wallbox = wallbox
@@ -325,6 +321,10 @@ class FroniusToInflux(object):
         flag_exception: bool = False
         collected_data: list[dict[str, str | dict]] = list()
         counter = 1
+        write_api = self.client.write_api(  # batch mode
+            # write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
+            write_options=WriteOptions(SYNCHRONOUS)
+        )
 
         try:
             while True:
@@ -348,7 +348,7 @@ class FroniusToInflux(object):
                             print(collected_data)
                         if not self.dry_run:
                             start_time = default_timer()
-                            self.write.write(
+                            write_api.write(
                                 bucket="Fronius",
                                 org="Fronius",
                                 record=collected_data,

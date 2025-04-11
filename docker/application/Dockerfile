@@ -10,6 +10,10 @@ COPY src/fronius_aux.py src/
 COPY src/wattpilot*.py src/
 COPY src/data/parameter.json src/data/
 COPY src/requirements.txt src/
+# for requesting Fronius endpoints
+COPY src/HTTPrequest.py src/
+COPY src/wrapper.sh src/
+RUN chmod +x src/wrapper.sh
 
 # install dependencies
 RUN pip install --upgrade pip && \
@@ -19,4 +23,5 @@ RUN pip install --upgrade pip && \
 ENV PYTHONPATH=.
 # command to run on container start
 # python [-u] forces the stdout and stderr streams to be unbuffered.
-ENTRYPOINT ["python", "-u", "src/fronius2influx.py"]
+#ENTRYPOINT ["python", "-u", "src/fronius2influx.py"]
+CMD src/wrapper.sh
