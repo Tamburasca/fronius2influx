@@ -21,7 +21,6 @@
   "graphTooltip": 0,
   "id": 1,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
@@ -40,6 +39,7 @@
             "axisLabel": "Power / W",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -73,16 +73,14 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
                 "value": 80
               }
             ]
-          },
-          "unitScale": true
+          }
         },
         "overrides": [
           {
@@ -220,10 +218,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "11.6.0",
       "targets": [
         {
           "datasource": {
@@ -235,7 +235,6 @@
         }
       ],
       "title": "Power Total Live",
-      "transformations": [],
       "type": "timeseries"
     },
     {
@@ -255,6 +254,7 @@
             "axisLabel": "Power / W",
             "axisPlacement": "left",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -289,16 +289,14 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
                 "value": 80
               }
             ]
-          },
-          "unitScale": true
+          }
         },
         "overrides": [
           {
@@ -348,8 +346,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "green",
-                      "value": null
+                      "color": "green"
                     }
                   ]
                 }
@@ -532,11 +529,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "10.2.3",
+      "pluginVersion": "11.6.0",
       "targets": [
         {
           "datasource": {
@@ -548,12 +546,12 @@
         }
       ],
       "title": "Inserted Power",
-      "transformations": [],
       "type": "timeseries"
     }
   ],
+  "preload": false,
   "refresh": "1m",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "tags": [
     "Production"
   ],
@@ -566,8 +564,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "PowerLive",
+  "title": "Power Live",
   "uid": "e72b3f30-38d7-4655-b5d8-7ed416984abe",
-  "version": 39,
-  "weekStart": ""
+  "version": 41
 }

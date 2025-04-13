@@ -363,7 +363,7 @@
   "refresh": "1h",
   "schemaVersion": 41,
   "tags": [
-    "Dev"
+    "QA"
   ],
   "templating": {
     "list": []
@@ -376,5 +376,5 @@
   "timezone": "utc",
   "title": "Energy Forecast",
   "uid": "fe8dybrwur4zkb",
-  "version": 31
+  "version": 32
 }

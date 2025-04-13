@@ -20,7 +20,6 @@
   "graphTooltip": 0,
   "id": 2,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
@@ -58,16 +57,14 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
                 "value": 80
               }
             ]
-          },
-          "unitScale": true
+          }
         },
         "overrides": [
           {
@@ -209,7 +206,7 @@
         ]
       },
       "gridPos": {
-        "h": 21,
+        "h": 12,
         "w": 24,
         "x": 0,
         "y": 0
@@ -230,13 +227,14 @@
         "showValue": "auto",
         "stacking": "none",
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         },
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "10.3.1",
+      "pluginVersion": "11.6.0",
       "targets": [
         {
           "datasource": {
@@ -248,14 +246,14 @@
         }
       ],
       "title": "Daily Aggregates For ${__from:date:MM-YYYY}",
-      "transformations": [],
       "type": "barchart"
     }
   ],
+  "preload": false,
   "refresh": "",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "tags": [
-    "Development"
+    "Production"
   ],
   "templating": {
     "list": []
@@ -268,6 +266,5 @@
   "timezone": "",
   "title": "Aggregates Daily",
   "uid": "f5709f11-96fa-40b5-84bc-086e32a6579f",
-  "version": 27,
-  "weekStart": ""
+  "version": 31
 }

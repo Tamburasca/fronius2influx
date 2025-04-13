@@ -43,6 +43,12 @@ _PARAMETER = [
 def main(
     test: bool = False
 ) -> None:
+    """
+    Donwload open-meteo forecast and convert to energy forecast utilizing the
+    PV architecture
+    :param test: disable influxDB writing if true
+    :return:
+    """
     # define logging
     logging_level: str = "DEBUG" if CONFIG['debug'] else "INFO"
     logging.basicConfig(format=MYFORMAT,

@@ -262,11 +262,9 @@
       },
       "id": 2,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
-        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -274,9 +272,9 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
       "pluginVersion": "11.6.0",
       "targets": [
@@ -298,13 +296,15 @@
         }
       ],
       "title": "Battery Status",
-      "type": "stat"
+      "type": "gauge"
     }
   ],
   "preload": false,
   "refresh": "5s",
   "schemaVersion": 41,
-  "tags": [],
+  "tags": [
+    "QA"
+  ],
   "templating": {
     "list": []
   },
@@ -316,5 +316,5 @@
   "timezone": "",
   "title": "Current Reading New",
   "uid": "c0b6cd3b-1283-4719-8ba2-79d357d80228",
-  "version": 12
+  "version": 14
 }

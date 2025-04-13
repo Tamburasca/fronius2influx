@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 15,
+  "id": 10,
   "links": [],
   "panels": [
     {
@@ -29,15 +29,15 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "yellow",
-            "mode": "fixed"
+            "mode": "palette-classic"
           },
           "custom": {
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "kWh",
-            "axisPlacement": "auto",
+            "axisGridShow": true,
+            "axisLabel": "Cumulated Power / kWh",
+            "axisPlacement": "left",
             "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": {
@@ -54,12 +54,15 @@
             }
           },
           "mappings": [],
-          "noValue": "0.0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           }
@@ -68,13 +71,56 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "forecast"
+              "options": "_time"
             },
             "properties": [
               {
+                "id": "unit",
+                "value": "time: DD.MM"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deviation"
+            },
+            "properties": [
+              {
+                "id": "custom.axisLabel",
+                "value": "Deviation / %"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
                 "id": "color",
                 "value": {
-                  "fixedColor": "blue",
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "measured"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
                   "mode": "fixed"
                 }
               }
@@ -83,29 +129,31 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Time"
+              "options": "predicted"
             },
             "properties": [
               {
-                "id": "custom.axisLabel",
-                "value": "Time"
+                "id": "custom.axisPlacement",
+                "value": "left"
               },
               {
-                "id": "unit",
-                "value": "time: hh:mm"
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 16,
+        "h": 12,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
-      "maxDataPoints": 14000,
       "options": {
         "barRadius": 0,
         "barWidth": 0.97,
@@ -120,7 +168,6 @@
         "orientation": "auto",
         "showValue": "auto",
         "stacking": "none",
-        "text": {},
         "tooltip": {
           "hideZeros": false,
           "mode": "single",
@@ -136,16 +183,16 @@
             "type": "influxdb",
             "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
           },
-          "query": "//\n// Compare Forecast\n//\n\nimport \"internal/debug\"\nimport \"timezone\"\nimport \"date\"\n\n//option location = timezone.location(name: \"UTC\")\n\nfieldsCommon = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\"]\nrES = 3600 // time resolution (s)\n\nsolar = from(bucket: \"Fronius\")\n  |> range(start: date.sub(from: v.timeRangeStart, d: 1h), stop:v.timeRangeStop)\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"CommonInverterData\" and contains(value: r._field, set: fieldsCommon)))\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration return ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\", \"_measurement\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with PowerSolarDC: (r.IDC_CommonInverterData * r.UDC_CommonInverterData\n                                           + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData) / 1000.\n                             }))\n  |> keep(columns:[\"_time\",\n                   \"PowerSolarDC\"])\n  |> rename(columns: {\n    _time: \"Time\",\n    })\n\n\nforecast = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"Forecast\" and r[\"_field\"] == \"forecast\"))\n  |> drop(columns: [\"_measurement\"])\n\nunion(tables: [solar, forecast])\n  |> yield()\n\n",
+          "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Berlin\")\n\nsolar = from(bucket: \"aggregates\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r._field == \"PowerSolarDC\")\n  |> keep(columns: [\"_time\", \"_value\"])\n\npred = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"Forecast\" and r._field == \"forecast\")\n  |> aggregateWindow(every: 1d, offset: -1m, fn: sum)\n  |> keep(columns: [\"_time\", \"_value\"])\n\n//union(tables: [solar, pred])\njoin(tables: {s: solar, p: pred}, on: [\"_time\"])\n  |> map(fn: (r) => ({r with deviation: (r._value_p - r._value_s) / r._value_s * 100.}))\n//  |> keep(columns: [\"_time\", \"deviation\"])\n  |> rename(columns: {\n    _value_p: \"predicted\",\n    _value_s: \"measured\"\n    })",
           "refId": "A"
         }
       ],
-      "title": "Comparison Prediction/Real",
+      "title": "Panel Title",
       "type": "barchart"
     }
   ],
   "preload": false,
-  "refresh": "1h",
+  "refresh": "",
   "schemaVersion": 41,
   "tags": [
     "Dev"
@@ -154,12 +201,12 @@
     "list": []
   },
   "time": {
-    "from": "now/d+3h",
+    "from": "now/M",
     "to": "now"
   },
   "timepicker": {},
-  "timezone": "utc",
-  "title": "Comparison Daily ",
-  "uid": "c3dc5296-ad72-462a-b762-5660cefe1529",
-  "version": 32
+  "timezone": "",
+  "title": "Comparison Daily",
+  "uid": "e47be60c-a0fc-47fa-85b3-12ebb7319bff",
+  "version": 12
 }

@@ -18,9 +18,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 10,
+  "id": 13,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
@@ -36,9 +35,8 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisGridShow": true,
-            "axisLabel": "Cumulated Power / kWh",
-            "axisPlacement": "left",
+            "axisLabel": "Energy / kWh",
+            "axisPlacement": "auto",
             "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": {
@@ -59,67 +57,38 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
                 "value": 80
               }
             ]
-          },
-          "unitScale": true
+          }
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "_time"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "time: DD.MM"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "deviation"
+              "options": "Time"
             },
             "properties": [
               {
                 "id": "custom.axisLabel",
-                "value": "Deviation / %"
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
+                "value": "Month"
               },
               {
                 "id": "unit",
-                "value": "none"
+                "value": "time: MM"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "measured"
+              "options": "UsageIn"
             },
             "properties": [
-              {
-                "id": "custom.axisPlacement",
-                "value": "left"
-              },
               {
                 "id": "color",
                 "value": {
@@ -132,17 +101,103 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "predicted"
+              "options": "BatteryDischarged"
             },
             "properties": [
               {
-                "id": "custom.axisPlacement",
-                "value": "left"
-              },
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NetFrom"
+            },
+            "properties": [
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "blue",
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NetTo"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PowerConsumed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PowerSolarDC"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "UsageDirect"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ProdIn"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
                   "mode": "fixed"
                 }
               }
@@ -151,12 +206,12 @@
         ]
       },
       "gridPos": {
-        "h": 10,
+        "h": 12,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "id": 2,
       "options": {
         "barRadius": 0,
         "barWidth": 0.97,
@@ -172,28 +227,31 @@
         "showValue": "auto",
         "stacking": "none",
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         },
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
+      "pluginVersion": "11.6.0",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
             "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
           },
-          "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Berlin\")\n\nsolar = from(bucket: \"aggregates\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r._field == \"PowerSolarDC\")\n  |> keep(columns: [\"_time\", \"_value\"])\n\npred = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"Forecast\" and r._field == \"ssrd\")\n  |> aggregateWindow(every: 1d, offset: -1m, fn: sum)\n  |> keep(columns: [\"_time\", \"_value\"])\n\n//union(tables: [solar, pred])\njoin(tables: {s: solar, p: pred}, on: [\"_time\"])\n  |> map(fn: (r) => ({r with deviation: (r._value_p - r._value_s) / r._value_s * 100.}))\n//  |> keep(columns: [\"_time\", \"deviation\"])\n  |> rename(columns: {\n    _value_p: \"predicted\",\n    _value_s: \"measured\"\n    })",
+          "query": "from(bucket: \"aggregates\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"daily\")\n  |> aggregateWindow(every: 1y, fn: sum, createEmpty:false)\n  |> timeShift(duration: -3h)\n  |> drop(columns: [\"_measurement\"])",
           "refId": "A"
         }
       ],
-      "title": "Panel Title",
+      "title": "Monthly Aggregates For ${__from:date:YYYY}",
       "type": "barchart"
     }
   ],
+  "preload": false,
   "refresh": "",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "tags": [
     "Dev"
   ],
@@ -201,13 +259,12 @@
     "list": []
   },
   "time": {
-    "from": "now/M",
+    "from": "now/y",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Comparison",
-  "uid": "e47be60c-a0fc-47fa-85b3-12ebb7319bff",
-  "version": 9,
-  "weekStart": ""
+  "title": "Aggregates Yearly",
+  "uid": "d54bbb82-e64c-482a-9b58-982ed18cd59d",
+  "version": 4
 }

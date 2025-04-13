@@ -21,7 +21,6 @@
   "graphTooltip": 0,
   "id": 3,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
@@ -39,8 +38,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -48,8 +46,7 @@
               }
             ]
           },
-          "unit": "kWh",
-          "unitScale": true
+          "unit": "kWh"
         },
         "overrides": [
           {
@@ -172,6 +169,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -183,7 +181,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.3.1",
+      "pluginVersion": "11.6.0",
       "targets": [
         {
           "datasource": {
@@ -195,12 +193,12 @@
         }
       ],
       "title": "Aggregate Today",
-      "transformations": [],
       "type": "stat"
     }
   ],
+  "preload": false,
   "refresh": "5m",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "tags": [
     "Production"
   ],
@@ -215,6 +213,5 @@
   "timezone": "",
   "title": "Aggregate Today",
   "uid": "be87b738-bb4b-42f0-b212-17688e3c04c6",
-  "version": 10,
-  "weekStart": ""
+  "version": 14
 }

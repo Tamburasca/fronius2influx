@@ -1,0 +1,168 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 15,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "yellow",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "kWh",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "noValue": "0.0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "forecast"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.axisLabel",
+                "value": "Time"
+              },
+              {
+                "id": "unit",
+                "value": "time: HH:mm"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "maxDataPoints": 14000,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.95,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "always",
+        "stacking": "none",
+        "text": {
+          "valueSize": 10
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
+          },
+          "query": "//\n// Compare Forecast\n//\n\nimport \"internal/debug\"\nimport \"timezone\"\nimport \"date\"\n\n//option location = timezone.location(name: \"UTC\")\n\nfieldsCommon = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\"]\nrES = 3600 // time resolution (s)\n\nsolar = from(bucket: \"Fronius\")\n  |> range(start: date.sub(from: v.timeRangeStart, d: 1h), stop:v.timeRangeStop)\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"CommonInverterData\" and contains(value: r._field, set: fieldsCommon)))\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration return ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\", \"_measurement\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with PowerSolarDC: (r.IDC_CommonInverterData * r.UDC_CommonInverterData\n                                           + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData) / 1000.\n                             }))\n  |> keep(columns:[\"_time\",\n                   \"PowerSolarDC\"])\n  |> rename(columns: {\n    _time: \"Time\",\n    })\n\n\nforecast = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"Forecast\" and r[\"_field\"] == \"forecast\"))\n  |> drop(columns: [\"_measurement\"])\n\nunion(tables: [solar, forecast])\n  |> yield()\n\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Comparison Prediction/Real",
+      "type": "barchart"
+    }
+  ],
+  "preload": false,
+  "refresh": "1h",
+  "schemaVersion": 41,
+  "tags": [
+    "Dev"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now/d+3h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Comparison Hourly",
+  "uid": "c3dc5296-ad72-462a-b762-5660cefe1529",
+  "version": 38
+}
