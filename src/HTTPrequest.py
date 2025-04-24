@@ -4,10 +4,11 @@ import os
 import json
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from requests import get, HTTPError, Response
 # internal
-from fronius2influx import FroniusToInflux, FroniusEndpoints
+from fronius2influx import (FroniusToInflux, FroniusEndpoints, StatusDevice,
+                            StatusBattery, VisibleDevice, StatusErrors)
 
 
 parameter_file = "{}/data/parameter.json".format(
@@ -96,6 +97,35 @@ async def query_power() -> None:
     res['SolarDC'] = (res.pop('IDC') * res.pop('UDC')
                       + res.pop('IDC_2') * res.pop('UDC_2'))
     res['Consumed'] = relu(res.pop('PAC') + power_net)
+
+    return JSONResponse(
+        content=res,
+        status_code=200)
+
+
+@app.get("/query/status")
+async def query_status() -> None:
+    res: dict[str, float] = dict()
+    for item in get_request():
+        fields = item['fields']
+        match item.get("measurement"):
+            case "SmartMeter":
+                res['Smart Meter Status'] = \
+                    StatusDevice(int(fields.get('Enable'))).name
+                res['Smart Meter Visible'] = \
+                    VisibleDevice(int(fields.get('Visible'))).name
+            case "DeviceStatus":
+                res['Inverter ErrorCode'] = \
+                    StatusErrors(fields.get('ErrorCode')).name
+                res['Inverter State'] = fields.get('InverterState')
+                # res['StatusCode'] = fields.get('StatusCode')
+            case "Battery":
+                res['Battery Status'] = \
+                    StatusDevice(int(fields.get('Enable'))).name
+                res['Battery Status Cell'] = \
+                    StatusBattery(int(fields.get('Status_BatteryCell'))).name
+            case _:
+                pass
 
     return JSONResponse(
         content=res,

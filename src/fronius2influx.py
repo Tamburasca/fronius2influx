@@ -38,7 +38,75 @@ class SunIsDown(Exception): ...
 class DataCollectionError(Exception): ...
 
 
-class DeviceStatus(Exception): ...
+class ResponseHeaderError(Exception): ...
+
+
+class VisibleDevice(Enum):
+    Outdated = 0
+    ValuesOK = 1
+
+
+class StatusDevice(Enum):
+    Disconnected = 0
+    Managed = 1
+
+
+class StatusErrors(Enum):
+    OK = 0
+    NotImplemented = 1
+    Uninitialized = 2
+    Initialized = 3
+    Running = 4
+    Timeout = 5
+    ArgumentError = 6
+    LNRequestError = 7
+    LNRequestTimeout = 8
+    LNParseError = 9
+    ConfigIOError = 10
+    NotSupported = 11
+    DeviceNotAvailable = 12
+    UnknownError = 255
+
+
+class StatusBattery(Enum):  # ToDo replace float through string in influxDB?
+    STANDBY = 0
+    INACTIVE = 1
+    DARKSTART = 2
+    ACTIVE = 3
+    FAULT = 4
+    UPDATING = 5
+
+
+class StatusCode(str, Enum):  # ToDo: needed?
+    A0 = "Startup", 0
+    A1 = "Startup", 1
+    A2 = "Startup", 2
+    A3 = "Startup", 3
+    A4 = "Startup", 4
+    A5 = "Startup", 5
+    A6 = "Startup", 6
+    B = "Running", 7
+    C = "Standby", 8
+    D = "Bootloading", 9
+    E = "Error", 10
+    F = "idle", 11
+    G = "Ready", 12
+    H = "Sleeping", 13
+    I = "Unknown", 255
+
+    def __new__(
+            cls,
+            value,
+            key
+    ) -> Enum:
+        obj = str.__new__(cls, [str, int])
+        obj._value_ = key
+        obj.__n = value
+        return obj
+
+    @property
+    def value(self):
+        return self.__n
 
 
 class _Meta(EnumMeta):
@@ -121,12 +189,23 @@ class FroniusToInflux(object):
 
     def translate_response(self) -> list[dict[str, str | dict]]:
         collection = self.data['Head']['RequestArguments'].get('DataCollection')
-        timestamp = self.data['Head']['Timestamp']
+        timestamp = self.data['Head']['Timestamp'] # timestamp from response
+        status = self.data['Head']['Status']
+
+        if status['Code'] != 0:  # Fronius header error
+            raise ResponseHeaderError(
+                "Error Code: {}, Reason: {}, UserMessage: {}".format(
+                    StatusErrors(status['Code']).name,
+                    status['Reason'],
+                    status['UserMessage']
+                ))
+
         try:
             storage = \
                 self.data['Body']['Data']['Controller']['Details']['Model']
         except KeyError:
             storage = None
+
         try:
             meter = self.data['Body']['Data']['Details']['Model']
         except KeyError:
@@ -210,6 +289,8 @@ class FroniusToInflux(object):
                     'fields': {
                         'Enable': m.get(
                             'Enable', -1),
+                        'Visible': m.get(
+                            'Visible', -1),
                         'PowerReal_P_Sum': float(m.get(
                             'PowerReal_P_Sum', 0.)),
                         'PowerReal_P_Phase_1': float(m.get(
@@ -363,38 +444,45 @@ class FroniusToInflux(object):
                     else:
                         counter += 1
 
+                    if (flag_sun_is_down
+                            or flag_connection
+                            or flag_exception):
+                        logging.info("Resuming recording ...")
                     flag_sun_is_down = False
                     flag_connection = False
                     flag_exception = False
                     sleep(self.BACKOFF_INTERVAL)
+
                 except SunIsDown:
                     if not flag_sun_is_down:
                         logging.warning("Waiting for sun to rise ...")
                         flag_sun_is_down = True
                     sleep(60)
-                except (ConnectionError, HTTPError, DeviceStatus) as e:
+
+                except (ConnectionError, HTTPError, ResponseHeaderError) as e:
                     if not flag_connection:
-                        logging.error(f"Connection or HTTP error: {str(e)}")
+                        logging.error(
+                            f"Connection/HTTP/Response Header error: {str(e)}")
                         logging.warning(
-                            "Please check your Fronius Inverter. "
-                            "Waiting 10 s for exception to suspend ..."
+                            "Waiting 60 s for exception to suspend ..."
                         )
                         flag_connection = True
-                    sleep(10)
+                    sleep(60)
+
                 except Exception as e:
                     if not flag_exception:
                         logging.error(f"Unknown exception: {str(e)}")
                         logging.warning(
-                            "Waiting 10 s for exception to suspend ..."
+                            "Waiting 60 s for exception to suspend ..."
                         )
                         flag_exception = True
-                    self.data = dict()
-                    sleep(10)
+                    sleep(60)
 
         except KeyboardInterrupt:
             print("Finishing. Goodbye!")
             sys.exit(os.EX_OK)
-        except (Exception,) as e:
+
+        except (Exception,) as e:  # any other error, tbd.
             print(f"Unknown error: {str(e)}")
             sys.exit(os.EX_OSERR)
 

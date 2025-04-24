@@ -157,12 +157,12 @@
     "list": []
   },
   "time": {
-    "from": "now/d+3h",
-    "to": "now"
+    "from": "now/d+4h",
+    "to": "now/d-4h"
   },
   "timepicker": {},
   "timezone": "utc",
   "title": "Comparison Hourly",
   "uid": "c3dc5296-ad72-462a-b762-5660cefe1529",
-  "version": 38
+  "version": 39
 }

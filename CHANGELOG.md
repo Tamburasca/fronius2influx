@@ -6,6 +6,16 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.5.0 (2025-04-24)
+### Added
+- Additional endpoint in http Rest API for querying status of all devices
+### Changed
+- Additional field in "Smart meter" measurement in influxDB
+### Fixed
+- Error treatment minor changes
+### Deprecated
+### Removed
+### Security
 ## 1.4.0 (2025-04-11)
 ### Added
 - HTTP RestAPI to read the Fronius inverted directly (runs with 
