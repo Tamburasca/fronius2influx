@@ -6,6 +6,14 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.6.0 (2025-05-xx)
+### Added
+### Changed
+- WebSocket connection between fronius2influx and HTTPrequest
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.5.0 (2025-04-24)
 ### Added
 - Additional endpoint in http Rest API for querying status of all devices

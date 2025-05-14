@@ -342,7 +342,7 @@ class Wattpilot(object):
             self._event_handler[event_type].remove(callback_fn)
 
     def __call_event_handler(self, event_type, *args):
-        logging.debug(f"Calling event handler for event type '{event_type} ...")
+        # logging.debug(f"Calling event handler for event type '{event_type} ...")
         if event_type not in self._event_handler:
             return
         for callback_fn in self._event_handler[event_type]:

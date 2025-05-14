@@ -70,22 +70,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Time"
-            },
-            "properties": [
-              {
-                "id": "custom.axisLabel",
-                "value": "Month"
-              },
-              {
-                "id": "unit",
-                "value": "time: MM"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "UsageIn"
             },
             "properties": [
@@ -202,6 +186,18 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              }
+            ]
           }
         ]
       },
@@ -245,7 +241,7 @@
           "refId": "A"
         }
       ],
-      "title": "Monthly Aggregates For ${__from:date:YYYY}",
+      "title": "Aggregates For ${__from:date:YYYY}",
       "type": "barchart"
     }
   ],
@@ -266,5 +262,5 @@
   "timezone": "",
   "title": "Aggregates Yearly",
   "uid": "d54bbb82-e64c-482a-9b58-982ed18cd59d",
-  "version": 4
+  "version": 11
 }

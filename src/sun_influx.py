@@ -32,7 +32,7 @@ class SunInflux(object):
             # astral.sun.elevation and azimuth
             timezone=parameter['location']['timezone']
         )
-        self.debug = debug  # not used
+        self.debug = debug  # not used to date
 
     def sun_parameter(
             self,

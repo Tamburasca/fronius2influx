@@ -7,11 +7,12 @@ WORKDIR /Fronius/
 # copy the content of the local src directory to the working directory
 COPY src/fronius2influx.py src/
 COPY src/fronius_aux.py src/
+COPY src/fronius_ws_sync_client.py src/
 COPY src/wattpilot*.py src/
 COPY src/data/parameter.json src/data/
 COPY src/requirements.txt src/
 # for requesting Fronius endpoints
-COPY src/HTTPrequest.py src/
+COPY src/HTTPrequest_v2.py src/
 COPY src/wrapper.sh src/
 RUN chmod +x src/wrapper.sh
 

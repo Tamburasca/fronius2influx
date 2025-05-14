@@ -69,7 +69,7 @@ services:
       - fronius2influx.env
     # Test: Fronius endpoints
     ports:
-      - "5000:5000"
+      - "5001:5000"
 
 ################################################################################
 # ECMWF weather forecast testing cron in slim-python

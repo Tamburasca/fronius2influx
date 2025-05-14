@@ -3,7 +3,7 @@
 Request monitoring data from a Fronius PV inverter's Rest API, foreward and 
 store it in an InfluxDB for visualization in Grafana. Current application 
 collects the most fundamental Fronius inverter data serving for a basic setup. 
-If your installation is any different or even more advanced, 
+If your installation is any different or more advanced, 
 some extra work may be reqired, though.
 
 Furthermore, weather forecasts, i.e. the "Surface short-wave (solar) radiation 
@@ -62,7 +62,7 @@ Enabled, it turned out to be >2 times slower than the synchronous version.
 # Architecture 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 
 64 GB SD card) inside a Docker infrastructure, comprising four containers. 
-![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_2.png)
+![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_4.png)
 
     cd docker
     docker-compose build

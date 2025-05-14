@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import datetime
 import json
 import math
-import pytz
 import os
 import sys
 import logging
@@ -18,13 +16,12 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from requests import get
 from requests.exceptions import ConnectionError, HTTPError
 # internal imports
-from src.fronius_aux import flatten_json, get_secret, pw
-from src.wattpilot_read import wattpilot_get
+from src.fronius_aux import (flatten_json, get_secret, pw, current_time_utc,
+                             MYFORMAT)
+from src.wattpilot_read import wattpilot_get, wattpilot_status
 from src.wattpilot import Wattpilot
+from src.fronius_ws_sync_client import WSSyncClient
 
-# Logging Format
-MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
-                 "%(lineno)s - %(funcName)s()\t%(message)s")
 
 MOSQUITTO_CIPHER = os.environ.get('MOSQUITTO_CIPHER')
 
@@ -382,11 +379,7 @@ class FroniusToInflux(object):
             return [
                 {
                     'measurement': 'SolarData',
-                    'time': datetime.datetime.now(
-                        tz=pytz.utc
-                    ).isoformat(
-                        timespec='seconds'
-                    ),
+                    'time': current_time_utc(),
                     'fields': flatten_json(result)
                 }
             ]
@@ -397,33 +390,51 @@ class FroniusToInflux(object):
                 return []
 
     def run(self) -> None:
+        collected_data: list[dict[str, str | dict]] = list()
+        websocket_data: list[dict[str, str | dict]] = list()
+        wallbox_status_fields_previous: dict = {'Wallbox connected': False}
         flag_sun_is_down: bool = False
         flag_connection: bool = False
         flag_exception: bool = False
-        collected_data: list[dict[str, str | dict]] = list()
-        counter = 1
+        counter: int  = 1
+
         write_api = self.client.write_api(  # batch mode
             # write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
             write_options=WriteOptions(SYNCHRONOUS)
         )
+        ws_client = WSSyncClient()  # for Rest API
 
         try:
             while True:
                 try:
                     for url in self.endpoints:
-                        result = get(url)
-                        result.raise_for_status()  # HTTP status
-                        self.data = result.json()
-                        collected_data.extend(self.translate_response())
-                    # amend solar parameter
+                        content = get(url)
+                        content.raise_for_status()  # HTTP status
+                        self.data = content.json()
+                        fronius_data = self.translate_response()
+                        # append data
+                        collected_data.extend(fronius_data)
+                        websocket_data.extend(fronius_data)  # transfer via ws
+
+                    # amend solar parameter, not for websocket
                     collected_data.extend(self.sun_parameter())
+
                     # amend wallbox data
                     if self.parameter['wallbox']['active']:
-                        collected_data.extend(
-                            wattpilot_get(wallbox=self.wallbox)
-                        )
-                    # 125 < time < 250 ms for querying all Rest APIs
-                    # and Websockets
+                        wallbox_data = wattpilot_get(wallbox=self.wallbox)
+                        # append data
+                        collected_data.extend(wallbox_data)
+                        websocket_data.extend(wallbox_data)  # transfer via ws
+
+                        # Wallbox status only if status fields changed
+                        wallbox_status = wattpilot_status(wallbox=self.wallbox)
+                        # append data
+                        websocket_data.extend(wallbox_status)  # transfer via ws
+                        if wallbox_status[0]['fields'] != wallbox_status_fields_previous:
+                            collected_data.extend(wallbox_status)
+                            wallbox_status_fields_previous = wallbox_status[0]['fields']
+
+                    # 125 - 250 ms for querying all Rest APIs & Websockets
                     if counter >= self.WRITE_CYCLE:
                         if logging.DEBUG >= logging.root.level:
                             print(collected_data)
@@ -444,6 +455,10 @@ class FroniusToInflux(object):
                     else:
                         counter += 1
 
+                    # transfer via websocket to HTTP Rest API & clear thereafter
+                    ws_client(websocket_data)
+                    websocket_data.clear()
+
                     if (flag_sun_is_down
                             or flag_connection
                             or flag_exception):
@@ -451,6 +466,7 @@ class FroniusToInflux(object):
                     flag_sun_is_down = False
                     flag_connection = False
                     flag_exception = False
+
                     sleep(self.BACKOFF_INTERVAL)
 
                 except SunIsDown:
@@ -501,6 +517,7 @@ def main() -> None:
                         level=getattr(logging, logging_level),
                         datefmt="%Y-%m-%d %H:%M:%S")
     logging.getLogger("Rx").setLevel(logging.INFO)
+#    print([logging.getLogger(name) for name in logging.root.manager.loggerDict])
 
     influxdb_host = os.getenv('INFLUXDB_HOST',
                               parameter['influxdb']['host'])

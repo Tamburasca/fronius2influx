@@ -152,5 +152,6 @@ def extract(
 
     if q:
         q.put((date_creation_str, result))
+        return None
     else:
         return date_creation_str, result

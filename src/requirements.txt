@@ -1,5 +1,6 @@
 influxdb-client==1.48.0
 # influxdb-client[async]==1.48.0
+websockets>=15.0.1
 astral==3.2
 requests>=2.32.3
 pytz==2024.2
