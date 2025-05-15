@@ -6,7 +6,16 @@
 ### Deprecated
 ### Removed
 ### Security
-## 1.6.0 (2025-05-xx)
+## 1.6.1 (2025-05-15)
+### Added
+### Changed
+### Fixed
+- Error correction for HTTPrequest catch KeyError
+- Catch OSError in websocket client
+### Deprecated
+### Removed
+### Security
+## 1.6.0 (2025-05-14)
 ### Added
 ### Changed
 - WebSocket connection between fronius2influx and HTTPrequest

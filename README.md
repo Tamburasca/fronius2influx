@@ -94,4 +94,4 @@ the setup is not generic.
 Currently - on a Raspberry PI 4 - influxDB is writing to an SD card. Its write
 cycles may be limited. The number of writes per time interval is reduced by
 increasing the WRITE_CYCLE > 1, e.g. to 12, such that data is cached and written
-to the SD card 1 min<sup>-1</sup>.
+to the SD card at 1 min<sup>-1</sup>.

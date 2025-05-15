@@ -265,7 +265,7 @@ class Wattpilot(object):
 
     @property
     def WifiSSID(self):
-        """Returns the SSID of the Wifi network currently connected (read only)"""
+        """Returns the SSID of the Wi-fi network currently connected (read only)"""
         return self._WifiSSID
 
     @property
@@ -342,7 +342,7 @@ class Wattpilot(object):
             self._event_handler[event_type].remove(callback_fn)
 
     def __call_event_handler(self, event_type, *args):
-        # logging.debug(f"Calling event handler for event type '{event_type} ...")
+        # logging.debug(f"Calling event handler for event type '{event_type}' ...")
         if event_type not in self._event_handler:
             return
         for callback_fn in self._event_handler[event_type]:
@@ -586,7 +586,7 @@ class Wattpilot(object):
             self.__on_AuthError(msg)
         if msg.type == 'fullStatus':  # Full Status -> Received after successful connection. Contains all properties of Wattpilot
             self.__on_FullStatus(msg)
-        if msg.type == 'deltaStatus':  # Delta Status -> Whenever a property changes a Delta Status is send
+        if msg.type == 'deltaStatus':  # Delta Status -> Whenever a property changes a Delta Status is sent
             self.__on_DeltaStatus(msg)
         if msg.type == 'clearInverters':  # Unknown
             self.__on_clearInverters(msg)
@@ -663,4 +663,4 @@ class Wattpilot(object):
             on_open=self.__on_open,
         )
         self.__call_event_handler(Event.WP_INIT)
-        logging.info("Wattpilot %s initialized", self.serial)
+        # logging.info("Wattpilot %s initialized", self.serial) # ToDo too early

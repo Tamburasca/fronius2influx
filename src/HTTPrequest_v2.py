@@ -78,6 +78,7 @@ class ConnectionManager:
         self.active_connections = list()
 
     async def connect(self, websocket: WebSocket) -> None:
+        logging.info("Waiting for client to connect.")
         await websocket.accept()
         self.active_connections.append(websocket)
         logging.info(
@@ -127,10 +128,15 @@ async def retrieve():
 
 @app.get("/query/battery")
 async def query_battery() -> None:
-    result: dict[str, float] = {
-        "BatteryLoadingLevel": pp.battery['StateOfCharge_Relative'],
-        "Temperature_Cell" : pp.battery['Temperature_Cell']
-    }
+    try:
+        result: dict[str, float] = {
+            "BatteryLoadingLevel": pp.battery['StateOfCharge_Relative'],
+            "Temperature_Cell" : pp.battery['Temperature_Cell']
+        }
+    except KeyError:
+        return JSONResponse(
+            content={},
+            status_code=status.HTTP_200_OK)
 
     return JSONResponse(
         content=result,
@@ -139,23 +145,28 @@ async def query_battery() -> None:
 
 @app.get("/query/power")
 async def query_power() -> None:
-    result: dict[str, float] = {
-        "SolarDC":
-            (pp.inverter['IDC'] * pp.inverter['UDC']
-             + pp.inverter['IDC_2'] * pp.inverter['UDC_2'])
-    }
-    power_net = pp.smartmeter['PowerReal_P_Sum']
-    pac = pp.inverter['PAC']
-    battery = pp.battery['Voltage_DC'] * pp.battery['Current_DC']
-    result['Consumed'] = relu(pac + power_net)
-    if power_net <= 0.:
-        result['Net To'] = -power_net
-    else:
-        result['Net From'] = power_net
-    if battery >= 0.:
-        result["Battery Charging"] = battery
-    else:
-        result["Battery Discharging"] = -battery
+    try:
+        result: dict[str, float] = {
+            "SolarDC":
+                (pp.inverter['IDC'] * pp.inverter['UDC']
+                 + pp.inverter['IDC_2'] * pp.inverter['UDC_2'])
+        }
+        power_net = pp.smartmeter['PowerReal_P_Sum']
+        pac = pp.inverter['PAC']
+        battery = pp.battery['Voltage_DC'] * pp.battery['Current_DC']
+        result['Consumed'] = relu(pac + power_net)
+        if power_net <= 0.:
+            result['Net To'] = -power_net
+        else:
+            result['Net From'] = power_net
+        if battery >= 0.:
+            result["Battery Charging"] = battery
+        else:
+            result["Battery Discharging"] = -battery
+    except KeyError:
+        return JSONResponse(
+            content={},
+            status_code=status.HTTP_200_OK)
 
     return JSONResponse(
         content=result,
@@ -164,20 +175,25 @@ async def query_power() -> None:
 
 @app.get("/query/status")
 async def query_status() -> None:
-    result: dict[str, str] = {
-        "Smart Meter Status":
-            StatusDevice(int(pp.smartmeter['Enable'])).name,
-        "Smart Meter Visible":
-            VisibleDevice(int(pp.smartmeter['Visible'])).name,
-        "Inverter ErrorCode":
-            StatusErrors(pp.devicestatus['ErrorCode']).name,
-        "Inverter State":
-            pp.devicestatus['InverterState'],
-        "Battery Status":
-            StatusDevice(int(pp.battery['Enable'])).name,
-        "Battery Status Cell":
-            StatusBattery(int(pp.battery['Status_BatteryCell'])).name
-    }
+    try:
+        result: dict[str, str] = {
+            "Smart Meter Status":
+                StatusDevice(int(pp.smartmeter['Enable'])).name,
+            "Smart Meter Visible":
+                VisibleDevice(int(pp.smartmeter['Visible'])).name,
+            "Inverter ErrorCode":
+                StatusErrors(pp.devicestatus['ErrorCode']).name,
+            "Inverter State":
+                pp.devicestatus['InverterState'],
+            "Battery Status":
+                StatusDevice(int(pp.battery['Enable'])).name,
+            "Battery Status Cell":
+                StatusBattery(int(pp.battery['Status_BatteryCell'])).name
+        }
+    except KeyError:
+        return JSONResponse(
+            content={},
+            status_code=status.HTTP_200_OK)
 
     return JSONResponse(
         content=result,
@@ -191,12 +207,17 @@ async def query_wallbox_status() -> None:
         "Wallbox connected": v
     }
     if v:
-        result = result | {
-            "Car connected": pp.wallbox['Car connected'],
-            "Charge status": pp.wallbox['Charge status'],
-            "Wallbox mode": pp.wallbox['Wallbox mode'],
-            "Wallbox power (Ampere)": pp.wallbox['Wallbox power (Ampere)']
-        }
+        try:
+            result = result | {
+                "Car connected": pp.wallbox['Car connected'],
+                "Charge status": pp.wallbox['Charge status'],
+                "Wallbox mode": pp.wallbox['Wallbox mode'],
+                "Wallbox power (Ampere)": pp.wallbox['Wallbox power (Ampere)']
+            }
+        except KeyError:
+            return JSONResponse(
+                content=result,
+                status_code=status.HTTP_200_OK)
 
     return JSONResponse(
         content=result,
@@ -208,13 +229,18 @@ async def query_wallbox_power() -> None:
     result: dict[str, float] = dict()
     v = pp.wallbox.get('Wallbox connected', False)
     if v:
-        result: dict[str, float] = {
-            "power": pp.wallbox["power"],
-            "power1": pp.wallbox["power1"],
-            "power2": pp.wallbox["power2"],
-            "power3": pp.wallbox["power3"],
-            "powerN": pp.wallbox["powerN"]
-        }
+        try:
+            result: dict[str, float] = {
+                "power": pp.wallbox["power"],
+                "power1": pp.wallbox["power1"],
+                "power2": pp.wallbox["power2"],
+                "power3": pp.wallbox["power3"],
+                "powerN": pp.wallbox["powerN"]
+            }
+        except KeyError:
+            return JSONResponse(
+                content={},
+                status_code=status.HTTP_200_OK)
 
     return JSONResponse(
         content=result,
