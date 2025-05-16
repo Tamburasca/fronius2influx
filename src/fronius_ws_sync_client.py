@@ -51,5 +51,9 @@ class WSSyncClient:
         except OSError as e:
             logging.warning("OSError: {}. {}".format(
                 e, "Reconnecting to websocket Server ..."))
+            self.websocket = None
+            self.connected = False
         except (Exception,) as e:
             logging.error("Unknown error: {}".format(e))
+            self.websocket = None
+            self.connected = False
