@@ -6,6 +6,15 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.6.2 (2025-05-17)
+### Added
+### Changed
+### Fixed
+- Error correction for HTTPrequest 
+- ASGImiddleware
+### Deprecated
+### Removed
+### Security
 ## 1.6.1 (2025-05-15)
 ### Added
 ### Changed

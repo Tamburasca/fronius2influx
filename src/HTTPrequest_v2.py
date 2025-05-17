@@ -5,10 +5,12 @@ import uvicorn
 import logging
 from fastapi import FastAPI, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+from starlette.middleware import Middleware
 # internal
 from fronius2influx import (StatusDevice, StatusBattery, VisibleDevice,
                             StatusErrors)
-from fronius_ws_sync_client import WEBSOCKTET_PORT, WEBSOCKET_ENDPOINT
+from fronius_ws_sync_client import WEBSOCKET_PORT, WEBSOCKET_ENDPOINT
 from fronius_aux import MYFORMAT
 
 
@@ -78,7 +80,6 @@ class ConnectionManager:
         self.active_connections = list()
 
     async def connect(self, websocket: WebSocket) -> None:
-        logging.info("Waiting for client to connect.")
         await websocket.accept()
         self.active_connections.append(websocket)
         logging.info(
@@ -95,10 +96,33 @@ class ConnectionManager:
         await websocket.send_text(message)
 
 
+class ASGIMiddleware:
+    def __init__(self, app_c):
+        self.app = app_c
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "websocket":
+            await self.app(scope, receive, send)
+            return
+        # code to perform on ws call
+        # print(scope, receive, send)
+        await self.app(scope, receive, send)
+
+
+@asynccontextmanager
+async def lifespan(app_c: FastAPI):
+    # on start
+    logging.info("Waiting for client to connect.")
+    yield
+    # on shutdown
+
+
 pp = PostProcess()
 manager = ConnectionManager()
 app = FastAPI(title="Fronius Inverter Direct Readout",
-              description="Current values from the Fronius Inverter & Wallbox")
+              description="Current values from the Fronius Inverter & Wallbox",
+              lifespan=lifespan,
+              middleware=[Middleware(ASGIMiddleware),])
 
 
 def relu(x) -> float: return max(0., x)
@@ -136,7 +160,7 @@ async def query_battery() -> None:
     except KeyError:
         return JSONResponse(
             content={},
-            status_code=status.HTTP_200_OK)
+            status_code=status.HTTP_206_PARTIAL_CONTENT)
 
     return JSONResponse(
         content=result,
@@ -166,7 +190,7 @@ async def query_power() -> None:
     except KeyError:
         return JSONResponse(
             content={},
-            status_code=status.HTTP_200_OK)
+            status_code=status.HTTP_206_PARTIAL_CONTENT)
 
     return JSONResponse(
         content=result,
@@ -193,7 +217,7 @@ async def query_status() -> None:
     except KeyError:
         return JSONResponse(
             content={},
-            status_code=status.HTTP_200_OK)
+            status_code=status.HTTP_206_PARTIAL_CONTENT)
 
     return JSONResponse(
         content=result,
@@ -217,7 +241,7 @@ async def query_wallbox_status() -> None:
         except KeyError:
             return JSONResponse(
                 content=result,
-                status_code=status.HTTP_200_OK)
+                status_code=status.HTTP_206_PARTIAL_CONTENT)
 
     return JSONResponse(
         content=result,
@@ -240,7 +264,7 @@ async def query_wallbox_power() -> None:
         except KeyError:
             return JSONResponse(
                 content={},
-                status_code=status.HTTP_200_OK)
+                status_code=status.HTTP_206_PARTIAL_CONTENT)
 
     return JSONResponse(
         content=result,
@@ -250,7 +274,7 @@ async def query_wallbox_power() -> None:
 def main():
     config = {
         "host": "0.0.0.0",
-        "port": WEBSOCKTET_PORT,
+        "port": WEBSOCKET_PORT,
         "timeout_keep_alive": 60,
         "log_level": "warning"
     }
