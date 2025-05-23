@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""
+for further considerations for middelware:
+https://www.starlette.io/middleware/#__tabbed_1_1
+"""
 import json
 import uvicorn
 import logging
@@ -7,6 +11,7 @@ from fastapi import FastAPI, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from starlette.middleware import Middleware
+from starlette.types import ASGIApp, Message, Scope, Receive, Send
 # internal
 from fronius2influx import (StatusDevice, StatusBattery, VisibleDevice,
                             StatusErrors)
@@ -97,10 +102,10 @@ class ConnectionManager:
 
 
 class ASGIMiddleware:
-    def __init__(self, app_c):
+    def __init__(self, app_c: ASGIApp):
         self.app = app_c
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope["type"] != "websocket":
             await self.app(scope, receive, send)
             return
@@ -115,6 +120,7 @@ async def lifespan(app_c: FastAPI):
     logging.info("Waiting for client to connect.")
     yield
     # on shutdown
+    pass
 
 
 pp = PostProcess()
@@ -134,8 +140,8 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            pp.message = data
-            await manager.send_message(data, websocket)  # handshake for confirm
+            pp.message = data  # assign data
+            await manager.send_message(data, websocket)  # resend for confirmation
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
