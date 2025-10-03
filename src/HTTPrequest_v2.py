@@ -131,7 +131,7 @@ app = FastAPI(title="Fronius Inverter Direct Readout",
               middleware=[Middleware(ASGIMiddleware),])
 
 
-def relu(x) -> float: return max(0., x)
+def relu(x: float) -> float: return max(0., x)
 
 
 @app.websocket(WEBSOCKET_ENDPOINT)  # websocket endpoint
