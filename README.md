@@ -8,7 +8,8 @@ some extra work may be reqired, though.
 
 Furthermore, weather forecasts, i.e. the "Surface short-wave (solar) radiation 
 downwards", are downloaded from the 
-[European Centre for Medium-Range Weather Forecasts ECMWF]([https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
+European Centre for Medium-Range Weather Forecasts 
+[ECMWF](https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
 in order to predict the (day-by-day) energy to be expected by the PV installation 
 for the upcoming 10 days. In parallel similar data is downloaded from the 
 [Global Forecast System](https://www.nco.ncep.noaa.gov/pmb/products/gfs/) of 
