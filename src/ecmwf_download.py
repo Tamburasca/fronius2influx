@@ -23,6 +23,7 @@ import math
 import logging
 from pygrib import open as pygrib_open
 from numpy import array as np_array
+import numpy.typing as npt
 from ecmwf.opendata import Client as ECMWFClient
 from scipy.interpolate import RegularGridInterpolator
 from datetime import datetime
@@ -41,7 +42,7 @@ DATA_DIR = "{}/data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 def create_grid(
-        coordinates: np_array,
+        coordinates: npt.ArrayLike,
         resolution: float
 ) -> dict[str, float]:
     """
@@ -68,7 +69,7 @@ def create_grid(
 def retrieve_ecmwf(
         params: list,
         steps: list,
-        coords: np_array,
+        coords: npt.ArrayLike,
         grid: dict
 ) -> dict:
 
