@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import math
 import os
 import sys
-import logging
-from timeit import default_timer
 from enum import Enum, EnumMeta
 from time import sleep
+from timeit import default_timer
 from typing import Generator
+
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
 from influxdb_client.client.write_api import SYNCHRONOUS
 from requests import get
 from requests.exceptions import ConnectionError, HTTPError
+
 # internal imports
 from src.fronius_aux import (flatten_json, get_secret, pw, current_time_utc,
                              MYFORMAT)
-from src.wattpilot_read import wattpilot_get, wattpilot_status
-from src.wattpilot import Wattpilot
 from src.fronius_ws_sync_client import WSSyncClient
-
+from src.wattpilot import Wattpilot
+from src.wattpilot_read import wattpilot_get, wattpilot_status
 
 MOSQUITTO_CIPHER = os.environ.get('MOSQUITTO_CIPHER')
 

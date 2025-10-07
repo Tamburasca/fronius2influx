@@ -5,18 +5,18 @@ template:
 https://github.com/joscha82/wattpilot
 """
 
-import websocket
-import json
+import base64
 import hashlib
+import hmac
+import json
+import logging
 import random
 import threading
-import hmac
-import logging
-import base64
-
 from enum import Enum, auto
 from time import sleep
 from types import SimpleNamespace
+
+import websocket
 
 
 class LoadMode(Enum):
@@ -563,7 +563,9 @@ class Wattpilot(object):
         #  __error_issued = False on successful reconnect
         logging.getLogger("websocket").disabled = True
         if not self.__error_issued:
-            logging.error(f"Error received from WebSocketApp: {err}")
+            logging.error(f"Error received from WebSocketApp: {err}.")
+            if self._auto_reconnect:
+                logging.info(f"Retrying in {self._reconnect_interval} seconds ...")
             self.__error_issued = True
         if self._auto_reconnect:
             sleep(self._reconnect_interval)
@@ -572,6 +574,10 @@ class Wattpilot(object):
     def __on_close(self, wsapp, code, msg):
         self.__call_event_handler(Event.WS_CLOSE, wsapp, code, msg)
         logging.getLogger("websocket").disabled = True
+        if self._connected:
+            logging.info("Websocket connection closed.")
+            if self._auto_reconnect:
+                logging.info(f"Retrying in {self._reconnect_interval} seconds ...")
         self._connected = False
         if self._auto_reconnect:
             sleep(self._reconnect_interval)

@@ -13,7 +13,8 @@
 - Docker logs for all services limited in size
 ### Fixed
 - Error correction for HTTPrequest (StatusErrors added 1175)
-- Error handling in wattpilot.py: reconnect on error after reconnection_interval
+- Error handling in wattpilot.py: reconnect on error after reconnection_interval 
+and suppress error messages in log file
 ### Deprecated
 ### Removed
 ### Security
