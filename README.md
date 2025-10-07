@@ -63,7 +63,7 @@ Enabled, it turned out to be >2 times slower than the synchronous version.
 # Architecture 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 
 64 GB SD card) inside a Docker infrastructure, comprising four containers. 
-![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_4.png)
+![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_5.png)
 
     cd docker
     docker-compose build
