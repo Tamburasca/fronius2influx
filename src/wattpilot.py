@@ -315,6 +315,10 @@ class Wattpilot(object):
             daemon=True)
         self._wst.start()
         self.__call_event_handler(Event.WP_CONNECT)
+        # on successful reconnect set __error_issued=False and enable
+        # websocket error logging again
+        self.__error_issued = False
+        logging.getLogger("websocket").disabled = False
         logging.info("Wattpilot connected")
 
     def disconnect(self, auto_reconnect=False):
@@ -325,7 +329,6 @@ class Wattpilot(object):
         logging.info("Wattpilot disconnected")
 
     # Wattpilot Event Handling
-
     # def __init_event_handler():
     #     eh = dict()
     #     for event_type in list(Event):
@@ -555,16 +558,21 @@ class Wattpilot(object):
 
     def __on_error(self, wsapp, err):
         self.__call_event_handler(Event.WS_ERROR, wsapp, err)
-        # ToDo
+        # ToDo: present status: reconnect after reconnect_interval and
+        #  avoid multiple error messages in log by setting
+        #  __error_issued = False on successful reconnect
+        logging.getLogger("websocket").disabled = True
         if not self.__error_issued:
             logging.error(f"Error received from WebSocketApp: {err}")
             self.__error_issued = True
+        if self._auto_reconnect:
+            sleep(self._reconnect_interval)
+            self._wsapp.run_forever()
 
     def __on_close(self, wsapp, code, msg):
-        # ToDo
+        self.__call_event_handler(Event.WS_CLOSE, wsapp, code, msg)
         logging.getLogger("websocket").disabled = True
         self._connected = False
-        self.__call_event_handler(Event.WS_CLOSE, wsapp, code, msg)
         if self._auto_reconnect:
             sleep(self._reconnect_interval)
             self._wsapp.run_forever()
@@ -604,7 +612,7 @@ class Wattpilot(object):
     ):
         self._auto_reconnect = auto_reconnect
         self._reconnect_interval = 60
-        self._websocket_default_timeout = 10
+        self._websocket_default_timeout = 30
         self.__requestid = 0
         self._name = None
         self._hostname = None
@@ -663,4 +671,3 @@ class Wattpilot(object):
             on_open=self.__on_open,
         )
         self.__call_event_handler(Event.WP_INIT)
-        # logging.info("Wattpilot %s initialized", self.serial) # ToDo too early

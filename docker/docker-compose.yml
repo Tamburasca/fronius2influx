@@ -3,6 +3,11 @@ services:
 # Fronius database influxDB 2.7
 ################################################################################
   influx_fronius:
+    logging:
+      options:
+        max-size: "20m"
+        max-file: "3"
+        mode: "non-blocking"
     image: "influxdb:2.7"
     container_name: &database-container-name influx_fronius
     networks:
@@ -26,6 +31,11 @@ services:
 # Fronius Grafana Dashboard
 ################################################################################
   grafana_fronius:
+    logging:
+      options:
+        max-size: "20m"
+        max-file: "3"
+        mode: "non-blocking"
     image: "grafana/grafana"
     container_name: grafana_fronius
     # ToDo test plugin installation
@@ -50,6 +60,11 @@ services:
 # Fronius Web Rest API Readout
 ################################################################################
   fronius2influx:
+    logging:
+      options:
+        max-size: "20m"
+        max-file: "3"
+        mode: "non-blocking"
     build:
       context: ..
       dockerfile: ./docker/application/Dockerfile
@@ -75,10 +90,15 @@ services:
 # ECMWF weather forecast testing cron in slim-python
 ################################################################################
   forecast2influx:
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+        mode: "non-blocking"
     build:
       context: ..
       dockerfile: ./docker/application/Dockerfile_forecast
-    image: "forecast:0.2"
+    image: "forecast:0.3"
     container_name: forecast2influx
 #    volumes:
 #      - ../src/data:/ecmwf/src/data

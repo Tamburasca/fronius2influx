@@ -1,9 +1,9 @@
-ecmwf-opendata>=0.3.19
-pygrib>=2.1.6
-influxdb-client>=1.48.0
-scipy>=1.15.2
-numpy>=2.2.3
-astral>=3.2
-cryptography>=43.0.3
-bs4>=0.0.2
-requests>=2.32.3
+ecmwf-opendata == 0.3.23
+pygrib == 2.1.6
+influxdb-client == 1.49.0
+scipy == 1.16.2
+numpy == 2.3.3
+astral == 3.2
+cryptography == 46.0.2
+bs4 == 0.0.2
+requests == 2.32.5

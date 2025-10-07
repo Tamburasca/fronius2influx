@@ -1,10 +1,9 @@
-influxdb-client==1.48.0
-# influxdb-client[async]==1.48.0
-websockets>=15.0.1
-astral==3.2
-requests>=2.32.3
-pytz==2024.2
-websocket-client==1.8.0
-cryptography>=43.0.3
-uvicorn>=0.34.0
-fastapi>=0.115.12
+influxdb-client == 1.49.0
+websockets == 15.0.1
+astral == 3.2
+requests == 2.32.5
+pytz == 2025.2
+websocket-client == 1.8.0
+cryptography == 46.0.2
+uvicorn == 0.37.0
+fastapi == 0.118.0

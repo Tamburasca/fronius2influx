@@ -5,19 +5,20 @@ for further considerations for middelware:
 https://www.starlette.io/middleware/#__tabbed_1_1
 """
 import json
-import uvicorn
 import logging
+from contextlib import asynccontextmanager
+
+import uvicorn
 from fastapi import FastAPI, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
 from starlette.middleware import Middleware
-from starlette.types import ASGIApp, Message, Scope, Receive, Send
+from starlette.types import ASGIApp, Scope, Receive, Send
+
 # internal
 from fronius2influx import (StatusDevice, StatusBattery, VisibleDevice,
                             StatusErrors)
-from fronius_ws_sync_client import WEBSOCKET_PORT, WEBSOCKET_ENDPOINT
 from fronius_aux import MYFORMAT
-
+from fronius_ws_sync_client import WEBSOCKET_PORT, WEBSOCKET_ENDPOINT
 
 logging_level: str = "INFO"
 logging.basicConfig(format=MYFORMAT,

@@ -63,7 +63,7 @@ class StatusErrors(Enum):
     NotSupported = 11
     DeviceNotAvailable = 12
     UnknownError = 255
-
+    Sleeping = 1175
 
 class StatusBattery(Enum):  # ToDo replace float through string in influxDB?
     STANDBY = 0

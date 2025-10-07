@@ -6,6 +6,17 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.7.0 (xxxx-xx-xx)
+### Added
+### Changed
+- Forecast logs to one single logfile only
+- Docker logs for all services limited in size
+### Fixed
+- Error correction for HTTPrequest (StatusErrors added 1175)
+- Error handling in wattpilot.py: reconnect on error after reconnection_interval
+### Deprecated
+### Removed
+### Security
 ## 1.6.2 (2025-05-17)
 ### Added
 ### Changed
