@@ -232,7 +232,7 @@ class Client(object):
                 url=self._get_url(step=step)
             )
         except (Exception,) as e:
-            logging.error(f"Error: {e}, "
+            logging.error(f"Error: {str(e)}, "
                           f"Resource not available. Revise your parameter set ...")
             return {}
         return self._prepare_request(idx)
@@ -262,7 +262,7 @@ class Client(object):
             response = self.session.get(url_index)
             response.raise_for_status()
             dix[url] = dict()
-            logging.info(f"Index file {url_index} downloaded")
+            logging.info(f"Index file {str(url_index)} downloaded")
         except requests.exceptions.HTTPError as e:
             raise e  # return empty dict for current url
 

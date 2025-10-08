@@ -122,7 +122,7 @@ def extract(
     fsss.close()
 
     for item in fs:
-        logging.info(item["shortName"], "->", item)
+        logging.info(item["shortName"] + " -> " + str(item))
         data, lats, lons = item.data(**grid)
         nearest_neighbor = RegularGridInterpolator(
             (lats[:, 0], lons[0, :]),
