@@ -25,4 +25,4 @@ ENV PYTHONPATH=.
 # command to run on container start
 # python [-u] forces the stdout and stderr streams to be unbuffered.
 #ENTRYPOINT ["python", "-u", "src/fronius2influx.py"]
-CMD src/wrapper.sh
+CMD ["src/wrapper.sh"]
