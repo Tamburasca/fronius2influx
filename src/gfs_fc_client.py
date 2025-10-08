@@ -6,14 +6,17 @@ gfs_fc_client.py
 extracts NCEP (NOAA) remote GFS grib2 file by multibyte range downloads
 according to filter parameters set and stores to temp files in data directory
 """
-import requests
+import logging
 # import json
 import os
-from time import sleep
-from requests import Response, HTTPError
-from multiurl import download
 from datetime import datetime, timedelta, timezone
+from time import sleep
+
+import requests
 from bs4 import BeautifulSoup
+from multiurl import download
+from requests import Response, HTTPError
+
 # internal
 from gfs_fc_aux import DATA_DIR, STEPS
 
@@ -111,7 +114,7 @@ class Client(object):
                 rc=expected_size == results,
                 target="{}/{}".format(DATA_DIR, file))
         else:
-            print("No byte range provided with url. Skipping...")
+            logging.warning("No byte range provided with url. Skipping...")
             return Result(
                 rc=False,
                 target=None)
@@ -153,8 +156,8 @@ class Client(object):
                     raise LookupError
         except (HTTPError, LookupError):
             self.lower_by_fc = True
-            print("Files to be downloaded are not available..."
-                  "trying a forecast 6 hrs. earlier.")
+            logging.error("Files to be downloaded are not available..."
+                          "trying a forecast 6 hrs. earlier.")
             self._dateandtime()
 
     def _dateandtime(
@@ -229,8 +232,8 @@ class Client(object):
                 url=self._get_url(step=step)
             )
         except (Exception,) as e:
-            print(e)
-            print("Resource not available. Revise your parameter set ...")
+            logging.error(f"Error: {e}, "
+                          f"Resource not available. Revise your parameter set ...")
             return {}
         return self._prepare_request(idx)
 
@@ -259,7 +262,7 @@ class Client(object):
             response = self.session.get(url_index)
             response.raise_for_status()
             dix[url] = dict()
-            print(f"Index file {url_index} downloaded")
+            logging.info(f"Index file {url_index} downloaded")
         except requests.exceptions.HTTPError as e:
             raise e  # return empty dict for current url
 
@@ -349,7 +352,7 @@ class Client(object):
                     #                for i in self.validity):
                     #         predicate = False
                     if predicate:
-                        print("{}:{}:{}:{}".format(
+                        logging.info("{}:{}:{}:{}".format(
                             value['datetime'],
                             value['shortName'],
                             value['level'],
@@ -366,7 +369,7 @@ class Client(object):
                     "url": url,
                     "parts": t}
             else:
-                print("No filter applied.")
+                logging.warning("No filter applied.")
             # end for loop item number each url
             # print("\n")
         # end for loop url

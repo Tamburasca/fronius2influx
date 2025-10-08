@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 import json
 import logging
+import os
+import sys
 from argparse import ArgumentParser
-from requests import get, HTTPError, Response
 from datetime import datetime, timedelta
+
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
+from requests import get, HTTPError, Response
+
+from fronius_aux import get_secret
 # internal
 from sun_influx import SunInflux
-from fronius_aux import get_secret
-
 
 # Logging Format
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
@@ -85,8 +86,7 @@ def main(
         content = get(url.format(**args))
         content.raise_for_status()  # HTTP status
     except HTTPError as e:
-        print(e)
-        print(content.json())
+        logging.error(f"Error: {e}, {content.content()}")
         sys.exit(1)
 
     result = content.json()['hourly']
@@ -177,11 +177,12 @@ def main(
     influx_write_api.close()
     csv_file_io.close()
 
+    logging.info(f"{os.path.basename(__file__)} exited.")
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    print(f"Python version utilized: {sys.version_info}")
+    # logging.info(f"Python version utilized: {sys.version_info}")
     parser = ArgumentParser(
         description="Downloads weather forecasts from open-meteo.com")
     parser.add_argument(

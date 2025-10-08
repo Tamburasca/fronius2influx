@@ -15,23 +15,25 @@ pygrib docu
 https://jswhit.github.io/pygrib/index.html
 """
 
-import os
-import sys
 import argparse
 import json
-import math
 import logging
-from pygrib import open as pygrib_open
-from numpy import array as np_array
+import math
+import os
+import sys
+from datetime import datetime
+
 import numpy.typing as npt
 from ecmwf.opendata import Client as ECMWFClient
-from scipy.interpolate import RegularGridInterpolator
-from datetime import datetime
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
+from numpy import array as np_array
+from pygrib import open as pygrib_open
+from scipy.interpolate import RegularGridInterpolator
+
+from fronius_aux import get_secret
 # internal
 from sun_influx import SunInflux
-from fronius_aux import get_secret
 
 # Logging Format
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
@@ -167,7 +169,7 @@ def main(
     logging.basicConfig(format=MYFORMAT,
                         level=getattr(logging, logging_level),
                         datefmt="%Y-%m-%d %H:%M:%S")
-    logging.info(f"Python version utilized: {sys.version_info}")
+    # logging.info(f"Python version utilized: {sys.version_info}")
     # define influxDB client: write oken & synchronous load
     influxdb_host = os.getenv('INFLUXDB_HOST',
                               config['influxdb']['host'])
@@ -195,14 +197,14 @@ def main(
                                          resolution=SPATIAL_RESOLUTION)
     if extended:
         # HRES 	@ 00 and 12 hrs	UTC, step size: 0 to 144 by 3, 144 to 240 by 6
-        steps: list = list(range(0, 144, 3)) + list(range(144, 241, 6))
+        steps: list = list(range(0, 144, 3)) + list(range(144, 361, 6))
         logging.info(
-            "Fetching 10-day Forecast for parameter(s): {}".format(params))
+            "Fetching 15-day Forecast for parameter(s): {}".format(params))
     else:
         # HRES 	@ 06 and 18 hrs UTC, step size: 0 to 90 by 3
-        steps: list = list(range(0, 91, 3))
+        steps: list = list(range(0, 145, 3))
         logging.info(
-            "Fetching 90-hr Forecast for parameter(s): {}".format(params))
+            "Fetching 6-day Forecast for parameter(s): {}".format(params))
 
     dict_x = retrieve_ecmwf(
         params=params,
@@ -276,6 +278,7 @@ def main(
     influx_write_api.close()
     csv_file_io.close()
 
+    logging.info(f"{os.path.basename(__file__)} exited.")
     sys.exit(0)
 
 

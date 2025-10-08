@@ -11,21 +11,24 @@ processing mode.
 """
 
 import json
-import sys
-import os
 import logging
-from datetime import datetime, timedelta
+import os
+import sys
 from argparse import ArgumentParser
+from datetime import datetime, timedelta
 from multiprocessing import Process, Queue
+
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
+
+from fronius_aux import get_secret
+from gfs_fc_aux import (defined_kwargs, CONFIG, STEPS, DATA_FILE, DATA_DIR,
+                        MYFORMAT)
 # internal
 from gfs_fc_client import Client
 from gfs_fc_download import extract
-from gfs_fc_aux import (defined_kwargs, CONFIG, STEPS, DATA_FILE, DATA_DIR,
-                        MYFORMAT)
-from fronius_aux import get_secret
 from sun_influx import SunInflux
+
 
 def main(
         parallel: bool = False,
@@ -100,7 +103,7 @@ def main(
             )
         )
         # success, match file size(s)
-        print(f"File '{results.target}' size matched: {results.rc}")
+        logging.info(f"File '{results.target}' size matched: {results.rc}")
         if not results.target:
             continue
 
@@ -115,7 +118,7 @@ def main(
             os.system("renice -n 19 -p {} >/dev/null".format(p.pid))
             ps.append(p)
             qs.append(queue)
-            print("Number of alive processes: {}"
+            logging.info("Number of alive processes: {}"
                   .format(sum([i.is_alive() for i in ps])))
         else:
             date_creation_string, res = extract(target=results.target)
@@ -199,11 +202,12 @@ def main(
     influx_write_api.close()
     csv_file_io.close()
 
+    logging.info(f"{os.path.basename(__file__)} exited.")
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    print(f"Python version utilized: {sys.version_info}")
+    # logging.info(f"Python version utilized: {sys.version_info}")
     parser = ArgumentParser(
         description="Downloads weather forecasts from ECMWF")
     parser.add_argument(

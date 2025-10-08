@@ -6,12 +6,13 @@ gfs_fc_download.py
 extract all parameters from temporary data files to dictionary
 """
 import logging
-import pygrib
 import os
-# import json
-from numpy import array as np_array
 from multiprocessing import Queue
+
+import pygrib
+from numpy import array as np_array
 from scipy.interpolate import RegularGridInterpolator
+
 # internal
 from gfs_fc_aux import CONFIG
 
@@ -121,7 +122,7 @@ def extract(
     fsss.close()
 
     for item in fs:
-        print(item["shortName"], "->", item)
+        logging.info(item["shortName"], "->", item)
         data, lats, lons = item.data(**grid)
         nearest_neighbor = RegularGridInterpolator(
             (lats[:, 0], lons[0, :]),

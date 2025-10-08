@@ -1,5 +1,5 @@
 ecmwf-opendata == 0.3.23
-pygrib == 2.1.6
+# pygrib == 2.1.6
 influxdb-client == 1.49.0
 scipy == 1.16.2
 numpy == 2.3.3
