@@ -6,7 +6,7 @@
 ### Deprecated
 ### Removed
 ### Security
-## 1.7.0 (xxxx-xx-xx)
+## 1.7.0 (2025-10-10)
 ### Added
 ### Changed
 - Forecast logs to one single logfile only
@@ -15,6 +15,9 @@
 - Error correction for HTTPrequest (StatusErrors added 1175)
 - Error handling in wattpilot.py: reconnect on error after reconnection_interval 
 and suppress error messages in log file
+- pygrib imported from source and introduced a hotfix 
+"from ctypes import c_long as long"
+in _pygrib.pyx until pygrib is fixed in a future release
 ### Deprecated
 ### Removed
 ### Security
