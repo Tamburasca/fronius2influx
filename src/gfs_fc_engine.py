@@ -8,6 +8,8 @@ extract module. Data in dictionary is stored into influxdb2 database.
 
 Parallel mode permits to run the client and extract module in parallel
 processing mode.
+
+ref.: https://www.nco.ncep.noaa.gov/pmb/products/gfs/
 """
 
 import json
@@ -103,7 +105,7 @@ def main(
             )
         )
         # success, match file size(s)
-        logging.info(f"File '{results.target}' size matched: {results.rc}")
+        logging.debug(f"File '{results.target}' size matched: {results.rc}")
         if not results.target:
             continue
 
@@ -118,7 +120,7 @@ def main(
             os.system("renice -n 19 -p {} >/dev/null".format(p.pid))
             ps.append(p)
             qs.append(queue)
-            logging.info("Number of alive processes: {}"
+            logging.debug("Number of alive processes: {}"
                   .format(sum([i.is_alive() for i in ps])))
         else:
             date_creation_string, res = extract(target=results.target)
@@ -141,7 +143,7 @@ def main(
         debug=CONFIG['debug']
     )
 
-    data = dict_x["Downward short-wave radiation flux:surface:instant:0"]
+    data = dict_x["Surface downward short-wave radiation flux:surface:instant:0"]
     datum = [datetime.strptime(i, '%Y%m%d%H%M') for i in data['time']]
     values = [i for i in data['value']]
     records = list()
