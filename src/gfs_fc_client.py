@@ -292,7 +292,7 @@ class Client(object):
         # continually hits the site over the threshold.
         # source: ncep.pmb.dataflow@noaa.gov (Brian)
         # Hence, configure the sleep argument accordingly!
-        sleep(5.)
+        sleep(2.5)
 
         return dix
 
