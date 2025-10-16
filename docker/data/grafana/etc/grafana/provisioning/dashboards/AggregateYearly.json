@@ -249,7 +249,7 @@
   "refresh": "",
   "schemaVersion": 41,
   "tags": [
-    "Dev"
+    "Production"
   ],
   "templating": {
     "list": []
@@ -262,5 +262,5 @@
   "timezone": "",
   "title": "Aggregates Yearly",
   "uid": "d54bbb82-e64c-482a-9b58-982ed18cd59d",
-  "version": 11
+  "version": 13
 }

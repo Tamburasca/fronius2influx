@@ -197,7 +197,7 @@
     }
   ],
   "preload": false,
-  "refresh": "5m",
+  "refresh": "15m",
   "schemaVersion": 41,
   "tags": [
     "Production"
@@ -213,5 +213,5 @@
   "timezone": "",
   "title": "Aggregate Today",
   "uid": "be87b738-bb4b-42f0-b212-17688e3c04c6",
-  "version": 14
+  "version": 15
 }

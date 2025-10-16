@@ -1,0 +1,6 @@
+from(bucket: "Fronius")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r["_measurement"] == "Battery")
+  |> filter(fn: (r) => r["_field"] == "Temperature_Cell")
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+  |> yield(name: "mean")

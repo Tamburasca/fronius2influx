@@ -36,7 +36,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "kWh",
+            "axisLabel": "Energy / kWh",
             "axisPlacement": "auto",
             "fillOpacity": 80,
             "gradientMode": "none",
@@ -139,11 +139,11 @@
             "type": "influxdb",
             "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
           },
-          "query": "//\n// Compare Forecast\n//\n\nimport \"internal/debug\"\nimport \"timezone\"\nimport \"date\"\n\n//option location = timezone.location(name: \"UTC\")\n\nfieldsCommon = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\"]\nrES = 3600 // time resolution (s)\n\nsolar = from(bucket: \"Fronius\")\n  |> range(start: date.sub(from: v.timeRangeStart, d: 1h), stop: date.add(to: v.timeRangeStop, d: 0s))\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"CommonInverterData\" and contains(value: r._field, set: fieldsCommon)))\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean, createEmpty: false) // duration return ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\", \"_measurement\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with PowerSolarDC: (r.IDC_CommonInverterData * r.UDC_CommonInverterData\n                                           + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData) / 1000.\n                             }))\n  |> keep(columns:[\"_time\",\n                   \"PowerSolarDC\"])\n  |> rename(columns: {\n    _time: \"Time\",\n    })\n\n\nforecast = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop: date.add(to: v.timeRangeStop, d: 1h))\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"Forecast\" and r[\"_field\"] == \"forecast\"))\n  |> drop(columns: [\"_measurement\"])\n\n//join(tables: {s: solar, p: forecast}, on: [\"Time\"])\nunion(tables: [solar, forecast])\n  |> yield()\n\n",
+          "query": "//\n// Compare Forecast\n//\n\nimport \"internal/debug\"\nimport \"timezone\"\nimport \"date\"\n\n//option location = timezone.location(name: \"UTC\")\n\nfieldsCommon = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\"]\nrES = 3600 // time resolution (s)\n\nsolar = from(bucket: \"Fronius\")\n  |> range(start: date.sub(from: v.timeRangeStart, d: 1h), stop: date.add(to: v.timeRangeStop, d: 1s))\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"CommonInverterData\" and contains(value: r._field, set: fieldsCommon)))\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean, createEmpty: false) // duration return ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\", \"_measurement\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with PowerSolarDC: (r.IDC_CommonInverterData * r.UDC_CommonInverterData\n                                           + r.IDC_2_CommonInverterData * r.UDC_2_CommonInverterData) / 1000.\n                             }))\n  |> keep(columns:[\"_time\",\n                   \"PowerSolarDC\"])\n  |> rename(columns: {\n    _time: \"Time\",\n    })\n\n\nforecast = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop: date.add(to: v.timeRangeStop, d: 1h))\n  |> filter(fn: (r) => (r[\"_measurement\"] == \"Forecast\" and r[\"_field\"] == \"forecast\"))\n  |> drop(columns: [\"_measurement\"])\n\n//join(tables: {s: solar, p: forecast}, on: [\"Time\"])\nunion(tables: [solar, forecast])\n  |> yield()",
           "refId": "A"
         }
       ],
-      "title": "Comparison Prediction/Real",
+      "title": "Comparison Today's Prediction vs. Real",
       "type": "barchart"
     }
   ],
@@ -151,7 +151,7 @@
   "refresh": "1h",
   "schemaVersion": 41,
   "tags": [
-    "Dev"
+    "Production"
   ],
   "templating": {
     "list": []
@@ -164,5 +164,5 @@
   "timezone": "utc",
   "title": "Comparison Hourly",
   "uid": "c3dc5296-ad72-462a-b762-5660cefe1529",
-  "version": 45
+  "version": 50
 }
