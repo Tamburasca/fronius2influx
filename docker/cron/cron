@@ -1,5 +1,5 @@
 45 8,20 * * *  /app/cron-execution.sh -e >> /var/log/ecmwf_out.log 2>&1
 45 1,13 * * *  /app/cron-execution.sh >> /var/log/ecmwf_out.log 2>&1
 # 30 5,11,17,23 * * *  /app/cron-execution_gfs.sh -p >> /var/log/gfs_out.log 2>&1
-0 2,14 * * *  /app/cron-execution_open-meteo.sh >> /var/log/open-meteo_out.log 2>&1
-0 0 1 1,4,7,10 * rm -f /var/log/ecmwf_out.log /var/log/gfs_out.log /var/log/open-meteo_out.log
+0 2,8,14,20 * * *  /app/cron-execution_open-meteo.sh >> /var/log/open-meteo_out.log 2>&1
+0 0 1 * * rm -f /var/log/ecmwf_out.log /var/log/gfs_out.log /var/log/open-meteo_out.log

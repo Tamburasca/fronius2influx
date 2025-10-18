@@ -125,7 +125,7 @@ class Client(object):
             url: str,
             ext: str = ".idx",
             params=None  # ToDo: obsolete
-    ) -> list:
+    ) -> list | None:
         """
         returns list of all index files (full path) of the most recent fc
         :param url: url of COMMON
@@ -134,6 +134,7 @@ class Client(object):
         :return:
         """
         response = requests.get(url, params=params)
+        response.raise_for_status()
         if response.ok:
             soup = BeautifulSoup(response.text, 'html.parser')
             # list of all downloadable index files per weather forecast time
@@ -141,7 +142,8 @@ class Client(object):
                     for node in soup.find_all('a')
                     if node.get('href').endswith(ext)]
         else:
-            response.raise_for_status()
+            return None
+
 
     def _check_availability(self) -> None:
         """
