@@ -7,7 +7,6 @@ extracts NCEP (NOAA) remote GFS grib2 file by multibyte range downloads
 according to filter parameters set and stores to temp files in data directory
 """
 import logging
-# import json
 import os
 from datetime import datetime, timedelta, timezone
 from time import sleep
@@ -288,7 +287,7 @@ class Client(object):
         # Caveat:
         # NOMAD permits a rate limit of <120/minute to their site.
         # hits are considered to be head/listing commands as well as actual
-        # data download attempts, i.e. each get http request
+        # data download attempts, i.e. every get http request
         # The block is temporary and typically lasts for 10 minutes
         # the system is automatically configured to blacklist an IP if it
         # continually hits the site over the threshold.
@@ -324,7 +323,7 @@ class Client(object):
                 }
                 continue
 
-            # number of parameter is key, might considere number as viable key!
+            # number of parameter is key, might consider number as viable key!
             for k, value in v.items():
                 for p in self.parameter:  # parameter to be selected
                     predicate = False

@@ -6,6 +6,15 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.7.1 (2025-10-19)
+### Added
+### Changed
+- architecture pic
+- README.md
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.7.0 (2025-10-10)
 ### Added
 ### Changed

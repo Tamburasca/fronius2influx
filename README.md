@@ -6,18 +6,17 @@ collects the most fundamental Fronius inverter data serving for a basic setup.
 If your installation is any different or more advanced, 
 some extra work may be reqired, though.
 
-Furthermore, weather forecasts, i.e. the "Surface short-wave (solar) radiation 
+Energy forecasts, i.e. the "Surface short-wave (solar) radiation 
 downwards", are downloaded from the 
 European Centre for Medium-Range Weather Forecasts 
-[ECMWF](https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), 
-in order to predict the (day-by-day) energy to be expected by the PV installation 
-for the upcoming 10 days. In parallel similar data is downloaded from the 
-[Global Forecast System](https://www.nco.ncep.noaa.gov/pmb/products/gfs/) of 
-NCEP (NOAA). Latter dataset comprises a 16-day forecast with a 1 hr 
-temporal resolution for the first 120 hrs and a resolution of 3 hrs. 
-thereafter. The spatial resolution of the GFS data is 0°.11 $\equiv$ 12 km.
-Moreover, an additional forecast, differing in direct and diffuse sunlight, 
-is downloaded from [Free Weather API](https://open-meteo.com/).
+[ECMWF](https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), in order to predict the (day-by-day) energy to be expected 
+by the present PV installation for the upcoming two weeks. 
+In parallel similar data is downloaded from the 
+[Global Forecast System](https://www.nco.ncep.noaa.gov/pmb/products/gfs/) of NCEP (NOAA). 
+Moreover, an additional forecast, separating in direct and diffuse sunlight, 
+is downloaded from [Free Weather API](https://open-meteo.com/). All three forecasts are stored in 
+the influxDB. Their downloads are scheduled (enabled or disabled) 
+via cron job in the docker container.
 
 # Fronius Endpoints 
 This application collects data from the following endpoints (Symo GEN24 6.0).
@@ -63,7 +62,7 @@ Enabled, it turned out to be >2 times slower than the synchronous version.
 # Architecture 
 The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a 
 64 GB SD card) inside a Docker infrastructure, comprising four containers. 
-![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_5.png)
+![Architecture](https://github.com/Tamburasca/fronius2influx/blob/main/pics/FroniusAPP_6.png)
 
     cd docker
     docker-compose build
@@ -95,4 +94,10 @@ the setup is not generic.
 Currently - on a Raspberry PI 4 - influxDB is writing to an SD card. Its write
 cycles may be limited. The number of writes per time interval is reduced by
 increasing the WRITE_CYCLE > 1, e.g. to 12, such that data is cached and written
-to the SD card at 1 min<sup>-1</sup>.
+to the SD card at 1 min<sup>-1</sup>. 
+
+At present the [pygrib](https://github.com/jswhit/pygrib) module needs an upgrade 
+as it does not comply with Cython 3.11. Hence, we 
+[modified](https://github.com/jswhit/pygrib/issues/265) src/pygrib/_pygrib.pyx
+accordingly and downloaded the pygrib source manually 
+(see https://pypi.org/project/pygrib/#files).
