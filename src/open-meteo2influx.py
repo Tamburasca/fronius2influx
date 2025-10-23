@@ -9,10 +9,10 @@ from datetime import datetime, timedelta
 
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
-from requests import get, HTTPError, Response
+from requests import get, HTTPError, Response, exceptions
 
-from fronius_aux import get_secret
 # internal
+from fronius_aux import get_secret
 from sun_influx import SunInflux
 
 # Logging Format
@@ -85,7 +85,7 @@ def main(
     try:
         content = get(url.format(**args))
         content.raise_for_status()  # HTTP status
-    except HTTPError as e:
+    except (HTTPError, exceptions.ReadTimeout) as e:
         logging.error(f"Error: {e}, {content.content()}")
         sys.exit(1)
 

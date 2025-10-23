@@ -81,38 +81,55 @@ class PostProcess:
 
 
 class ConnectionManager:
-    """Class defining socket events"""
+    """Class defining socket events.
+    Supposedly we will have one ws connection solely
+    """
     def __init__(self):
-        self.active_connections = list()
+        self.active_connection: bool = False
 
-    async def connect(self, websocket: WebSocket) -> None:
+    async def connect(
+            self,
+            websocket: WebSocket
+    ) -> None:
         await websocket.accept()
-        self.active_connections.append(websocket)
-        logging.info(
-            "Client {} connected, out of {} websocket connection(s).".format(
-                websocket.client,
-                len(self.active_connections)
-            ))
+        self.active_connection = True
+        logging.info(f"Client '{websocket.client}' connected.")
 
-    def disconnect(self, websocket: WebSocket) -> None:
-        self.active_connections.remove(websocket)
-        logging.warning("Waiting for client to reconnect ...")
+    def disconnect(
+            self,
+            websocket: WebSocket
+    ) -> None:
+        self.active_connection = False
+        logging.info(f"Client '{websocket.client}' disconnected. Waiting to "
+                     f"reconnect ...")
 
-    async def send_message(self, message: str, websocket: WebSocket) -> None:
+    async def send_message(
+            self,
+            websocket: WebSocket,
+            message: str
+    ) -> None:
         await websocket.send_text(message)
 
 
 class ASGIMiddleware:
-    def __init__(self, app_c: ASGIApp):
+    def __init__(
+            self,
+            app_c: ASGIApp
+    ):
         self.app = app_c
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        if scope["type"] != "websocket":
+    async def __call__(
+            self,
+            scope: Scope,
+            receive: Receive,
+            send: Send
+    ) -> None:
+        if scope["type"] == "websocket":
+            # possible code to perform on a ws call
+            # print(scope, receive, send)
             await self.app(scope, receive, send)
-            return
-        # code to perform on ws call
-        # print(scope, receive, send)
-        await self.app(scope, receive, send)
+        else:
+            await self.app(scope, receive, send)
 
 
 @asynccontextmanager
@@ -127,7 +144,7 @@ async def lifespan(app_c: FastAPI):
 pp = PostProcess()
 manager = ConnectionManager()
 app = FastAPI(title="Fronius Inverter Direct Readout",
-              description="Current values from the Fronius Inverter & Wallbox",
+              description="Current Readings from the Inverter & Wallbox",
               lifespan=lifespan,
               middleware=[Middleware(ASGIMiddleware),])
 
@@ -142,7 +159,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             pp.message = data  # assign data
-            await manager.send_message(data, websocket)  # resend for confirmation
+            await manager.send_message(websocket, data)  # resend for confirmation
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 

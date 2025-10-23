@@ -94,10 +94,4 @@ the setup is not generic.
 Currently - on a Raspberry PI 4 - influxDB is writing to an SD card. Its write
 cycles may be limited. The number of writes per time interval is reduced by
 increasing the WRITE_CYCLE > 1, e.g. to 12, such that data is cached and written
-to the SD card at 1 min<sup>-1</sup>. 
-
-At present the [pygrib](https://github.com/jswhit/pygrib) module needs an urgent
-upgrade, as it does not comply with the latest Cython. As a workaround, we 
-download the pygrib source (https://pypi.org/project/pygrib/#files) manually 
-and [modify](https://github.com/jswhit/pygrib/issues/265) src/pygrib/_pygrib.pyx
-accordingly.
+to the SD card at 1 min<sup>-1</sup>.

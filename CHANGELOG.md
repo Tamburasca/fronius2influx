@@ -6,6 +6,16 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.7.2 (2025-10-23)
+### Added
+### Changed
+- Minor changes regarding websockets to HTTPRequest
+- cron
+### Fixed
+- Run with pygrib 2.1.7 to fix Cython 3.1.0 incompatibility
+### Deprecated
+### Removed
+### Security
 ## 1.7.1 (2025-10-19)
 ### Added
 ### Changed
