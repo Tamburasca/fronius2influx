@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 from typing import Any
+
 # internal
-from src.wattpilot import Wattpilot
 from src.fronius_aux import current_time_utc
+from src.wattpilot import Wattpilot
 
 
 def wattpilot_get(

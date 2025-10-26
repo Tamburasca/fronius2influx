@@ -31,9 +31,9 @@ from numpy import array as np_array
 from pygrib import open as pygrib_open
 from scipy.interpolate import RegularGridInterpolator
 
-from fronius_aux import get_secret
 # internal
-from sun_influx import SunInflux
+from src.fronius_aux import get_secret
+from src.sun_influx import SunInflux
 
 # Logging Format
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "

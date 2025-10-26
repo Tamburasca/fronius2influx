@@ -9,12 +9,13 @@ import logging
 import os
 from multiprocessing import Queue
 
+import numpy.typing as npt
 import pygrib
 from numpy import array as np_array
 from scipy.interpolate import RegularGridInterpolator
 
 # internal
-from gfs_fc_aux import CONFIG
+from src.gfs_fc_aux import CONFIG
 
 
 # def write_forecast(
@@ -43,9 +44,9 @@ from gfs_fc_aux import CONFIG
 
 
 def create_grid(
-        coordinates: np_array,
-        lats: np_array,
-        lons: np_array
+        coordinates: npt.ArrayLike,
+        lats: npt.ArrayLike,
+        lons: npt.ArrayLike
 ) -> dict:
     """
     create square in the coordinate grid that encloses location

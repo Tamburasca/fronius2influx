@@ -12,8 +12,8 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from requests import get, HTTPError, Response, exceptions
 
 # internal
-from fronius_aux import get_secret
-from sun_influx import SunInflux
+from src.fronius_aux import get_secret
+from src.sun_influx import SunInflux
 
 # Logging Format
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "

@@ -1,8 +1,9 @@
 import math
 from datetime import datetime, timedelta
-from astral.sun import elevation, azimuth
-from astral import LocationInfo
 from typing import Generator
+
+from astral import LocationInfo
+from astral.sun import elevation, azimuth
 
 
 class SunInflux(object):

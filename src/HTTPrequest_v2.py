@@ -15,15 +15,16 @@ from starlette.middleware import Middleware
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 # internal
-from fronius2influx import (StatusDevice, StatusBattery, VisibleDevice,
+from src.fronius2influx import (StatusDevice, StatusBattery, VisibleDevice,
                             StatusErrors)
-from fronius_aux import MYFORMAT
-from fronius_ws_sync_client import WEBSOCKET_PORT, WEBSOCKET_ENDPOINT
+from src.fronius_aux import MYFORMAT
+from src.fronius_ws_sync_client import WEBSOCKET_PORT, WEBSOCKET_ENDPOINT
 
 logging_level: str = "INFO"
 logging.basicConfig(format=MYFORMAT,
                     level=getattr(logging, logging_level),
                     datefmt="%Y-%m-%d %H:%M:%S")
+
 
 class PostProcess:
     def __init__(self):
@@ -84,6 +85,7 @@ class ConnectionManager:
     """Class defining socket events.
     Supposedly we will have one ws connection solely
     """
+
     def __init__(self):
         self.active_connection: bool = False
 
@@ -112,6 +114,9 @@ class ConnectionManager:
 
 
 class ASGIMiddleware:
+    """ serves as placeholder, not of any benefit for the time being
+    """
+
     def __init__(
             self,
             app_c: ASGIApp
@@ -141,15 +146,15 @@ async def lifespan(app_c: FastAPI):
     pass
 
 
+def relu(x: float) -> float: return max(0., x)
+
+
 pp = PostProcess()
 manager = ConnectionManager()
 app = FastAPI(title="Fronius Inverter Direct Readout",
               description="Current Readings from the Inverter & Wallbox",
               lifespan=lifespan,
-              middleware=[Middleware(ASGIMiddleware),])
-
-
-def relu(x: float) -> float: return max(0., x)
+              middleware=[Middleware(ASGIMiddleware), ])
 
 
 @app.websocket(WEBSOCKET_ENDPOINT)  # websocket endpoint
@@ -165,21 +170,23 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.get("/retrieve",
-         description="Testing the message content"
+         name="Debugging entire content",
+         tags=["debugging"]
          )
 async def retrieve():
-
     return JSONResponse(
         content=pp.message,
         status_code=status.HTTP_200_OK)
 
 
-@app.get("/query/battery")
+@app.get("/query/battery",
+         name="Battery measurements",
+         tags=["readings"])
 async def query_battery() -> None:
     try:
         result: dict[str, float] = {
             "BatteryLoadingLevel": pp.battery['StateOfCharge_Relative'],
-            "Temperature_Cell" : pp.battery['Temperature_Cell']
+            "Temperature_Cell": pp.battery['Temperature_Cell']
         }
     except KeyError:
         return JSONResponse(
@@ -191,7 +198,9 @@ async def query_battery() -> None:
         status_code=status.HTTP_200_OK)
 
 
-@app.get("/query/power")
+@app.get("/query/power",
+         name="Energy measurements",
+         tags=["readings"])
 async def query_power() -> None:
     try:
         result: dict[str, float] = {
@@ -221,7 +230,9 @@ async def query_power() -> None:
         status_code=status.HTTP_200_OK)
 
 
-@app.get("/query/status")
+@app.get("/query/status",
+         name="Status",
+         tags=["status"])
 async def query_status() -> None:
     try:
         result: dict[str, str] = {
@@ -248,7 +259,9 @@ async def query_status() -> None:
         status_code=status.HTTP_200_OK)
 
 
-@app.get("/query/wallbox_status")
+@app.get("/query/wallbox_status",
+         name="Wallbox status",
+         tags=["wallbox"])
 async def query_wallbox_status() -> None:
     v = pp.wallbox.get('Wallbox connected', False)
     result: dict[str, float | bool | str] = {
@@ -272,7 +285,9 @@ async def query_wallbox_status() -> None:
         status_code=status.HTTP_200_OK)
 
 
-@app.get("/query/wallbox_power")
+@app.get("/query/wallbox_power",
+         name="Wallbox readings",
+         tags=["wallbox"])
 async def query_wallbox_power() -> None:
     result: dict[str, float] = dict()
     v = pp.wallbox.get('Wallbox connected', False)

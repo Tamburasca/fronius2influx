@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 # Logging Format
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "

@@ -7,9 +7,8 @@ import json
 import logging
 
 from websockets import ConcurrencyError
-from websockets.sync.client import connect
 from websockets.exceptions import ConnectionClosedError
-
+from websockets.sync.client import connect
 
 WEBSOCKET_PORT = 5000
 WEBSOCKET_ENDPOINT = "/communicate"

@@ -23,13 +23,13 @@ from multiprocessing import Process, Queue
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-from fronius_aux import get_secret
-from gfs_fc_aux import (defined_kwargs, CONFIG, STEPS, DATA_FILE, DATA_DIR,
-                        MYFORMAT)
 # internal
-from gfs_fc_client import Client
-from gfs_fc_download import extract
-from sun_influx import SunInflux
+from src.fronius_aux import get_secret
+from src.gfs_fc_aux import (defined_kwargs, CONFIG, STEPS, DATA_FILE, DATA_DIR,
+                            MYFORMAT)
+from src.gfs_fc_client import Client
+from src.gfs_fc_download import extract
+from src.sun_influx import SunInflux
 
 
 def main(

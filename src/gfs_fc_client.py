@@ -17,7 +17,7 @@ from multiurl import download
 from requests import Response, HTTPError
 
 # internal
-from gfs_fc_aux import DATA_DIR, STEPS
+from src.gfs_fc_aux import DATA_DIR, STEPS
 
 FC_TIMES = [0, 6, 12, 18]
 COMMON = "{_url}/{_model}.{_yyyymmdd}/{_H}/atmos/"

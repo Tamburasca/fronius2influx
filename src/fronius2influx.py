@@ -66,6 +66,7 @@ class StatusErrors(Enum):
     UnknownError = 255
     Sleeping = 1175
 
+
 class StatusBattery(Enum):  # ToDo replace float through string in influxDB?
     STANDBY = 0
     INACTIVE = 1
@@ -508,8 +509,9 @@ def main() -> None:
     wallbox: Wattpilot = None
 
     parameter_file = "{}/data/parameter.json".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+        os.path.dirname(
+            os.path.realpath(__file__)
+        ))
     with open(parameter_file, 'r') as f:
         parameter = json.load(f)
 

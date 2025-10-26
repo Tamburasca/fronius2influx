@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-from cryptography.fernet import Fernet
 from datetime import datetime, timezone
 from typing import Any
 
+from cryptography.fernet import Fernet
 
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
