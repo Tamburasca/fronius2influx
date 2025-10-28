@@ -57,4 +57,4 @@ RUN touch /var/log/cron.log
 ENV PYTHONPATH=.
 # CMD ["cron", "&&", "tail", "-f", "/var/cron.log"]
 # http://web.archive.org/web/20230118040109/https://roboslang.blog/post/2017-12-06-cron-docker/
-CMD /app/start.sh
+CMD ["/app/start.sh"]

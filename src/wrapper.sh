@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # start fastAPI at port=5000
 python3 -u src/HTTPrequest_v2.py &
 sleep 6

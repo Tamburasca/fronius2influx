@@ -15,8 +15,12 @@ from starlette.middleware import Middleware
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 # internal
-from src.fronius2influx import (StatusDevice, StatusBattery, VisibleDevice,
-                            StatusErrors)
+from src.fronius_aux import (
+    StatusDevice,
+    StatusBattery,
+    VisibleDevice,
+    StatusErrors
+)
 from src.fronius_aux import MYFORMAT
 from src.fronius_ws_sync_client import WEBSOCKET_PORT, WEBSOCKET_ENDPOINT
 

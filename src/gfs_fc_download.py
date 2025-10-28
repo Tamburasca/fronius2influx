@@ -15,7 +15,7 @@ from numpy import array as np_array
 from scipy.interpolate import RegularGridInterpolator
 
 # internal
-from src.gfs_fc_aux import CONFIG
+from gfs_fc_aux import CONFIG
 
 
 # def write_forecast(

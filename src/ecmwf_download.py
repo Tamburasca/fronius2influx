@@ -32,8 +32,8 @@ from pygrib import open as pygrib_open
 from scipy.interpolate import RegularGridInterpolator
 
 # internal
-from src.fronius_aux import get_secret
-from src.sun_influx import SunInflux
+from fronius_aux import get_secret
+from sun_influx import SunInflux
 
 # Logging Format
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
@@ -203,6 +203,8 @@ def main(
     else:
         # HRES 	@ 06 and 18 hrs UTC, step size: 0 to 90 by 3
         steps: list = list(range(0, 145, 3))
+        # for registered users only
+        # steps: list = list(range(0, 91, 1)) + list(range(93, 145, 3))
         logging.info(
             "Fetching 6-day Forecast for parameter(s): {}".format(params))
 
@@ -289,7 +291,7 @@ if __name__ == "__main__":
         '-e',
         '--extended',
         action="store_true",
-        help="Fetch 10-day Forecast at 00 or 12 hrs, 90-hr Forecast (default)"
+        help="Fetch 15-day forecast at 00/12 hrs. UTC, 6-day forecast (default)"
     )
     parser.add_argument(
         '-t',

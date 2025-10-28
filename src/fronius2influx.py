@@ -5,10 +5,10 @@ import logging
 import math
 import os
 import sys
-from enum import Enum, EnumMeta
+from enum import Enum #, EnumMeta
 from time import sleep
 from timeit import default_timer
-from typing import Generator
+# from typing import Generator
 
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
@@ -18,8 +18,15 @@ from requests import get
 from requests.exceptions import ConnectionError, HTTPError
 
 # internal imports
-from src.fronius_aux import (flatten_json, get_secret, pw, current_time_utc,
-                             MYFORMAT)
+from src.fronius_aux import (
+    flatten_json,
+    get_secret,
+    pw,
+    current_time_utc,
+    MYFORMAT,
+    _Meta,
+    StatusErrors
+)
 from src.fronius_ws_sync_client import WSSyncClient
 from src.wattpilot import Wattpilot
 from src.wattpilot_read import wattpilot_get, wattpilot_status
@@ -37,85 +44,6 @@ class DataCollectionError(Exception): ...
 
 
 class ResponseHeaderError(Exception): ...
-
-
-class VisibleDevice(Enum):
-    Outdated = 0
-    ValuesOK = 1
-
-
-class StatusDevice(Enum):
-    Disconnected = 0
-    Managed = 1
-
-
-class StatusErrors(Enum):
-    OK = 0
-    NotImplemented = 1
-    Uninitialized = 2
-    Initialized = 3
-    Running = 4
-    Timeout = 5
-    ArgumentError = 6
-    LNRequestError = 7
-    LNRequestTimeout = 8
-    LNParseError = 9
-    ConfigIOError = 10
-    NotSupported = 11
-    DeviceNotAvailable = 12
-    UnknownError = 255
-    Sleeping = 1175
-
-
-class StatusBattery(Enum):  # ToDo replace float through string in influxDB?
-    STANDBY = 0
-    INACTIVE = 1
-    DARKSTART = 2
-    ACTIVE = 3
-    FAULT = 4
-    UPDATING = 5
-
-
-class StatusCode(str, Enum):  # ToDo: needed?
-    A0 = "Startup", 0
-    A1 = "Startup", 1
-    A2 = "Startup", 2
-    A3 = "Startup", 3
-    A4 = "Startup", 4
-    A5 = "Startup", 5
-    A6 = "Startup", 6
-    B = "Running", 7
-    C = "Standby", 8
-    D = "Bootloading", 9
-    E = "Error", 10
-    F = "idle", 11
-    G = "Ready", 12
-    H = "Sleeping", 13
-    I = "Unknown", 255
-
-    def __new__(
-            cls,
-            value,
-            key
-    ) -> Enum:
-        obj = str.__new__(cls, [str, int])
-        obj._value_ = key
-        obj.__n = value
-        return obj
-
-    @property
-    def value(self):
-        return self.__n
-
-
-class _Meta(EnumMeta):
-    def __iter__(self) -> Generator[str, None, None]:
-        for member in super().__iter__():
-            yield "http://{}{}{}".format(
-                member.kwargs['host'],
-                member.kwargs['application'],
-                member.value
-            )
 
 
 class FroniusEndpoints(
