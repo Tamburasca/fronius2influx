@@ -54,7 +54,7 @@ RUN crontab /etc/cron.d/cron
 # Create empty log (TAIL needs this)
 RUN touch /var/log/cron.log
 
-ENV PYTHONPATH=.
+ENV PYTHONPATH=/app/
 # CMD ["cron", "&&", "tail", "-f", "/var/cron.log"]
 # http://web.archive.org/web/20230118040109/https://roboslang.blog/post/2017-12-06-cron-docker/
 CMD ["/app/start.sh"]

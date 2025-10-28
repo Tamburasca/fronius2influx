@@ -37,7 +37,7 @@ All monitoring data is stored in bucket "Fronius", comprising the following meas
 * "SolarData": calculated energy on each panel group, as function of the 
 geolocation of the PV installation, solar position, and attenuation owing to airmass.  
 * "Forecast": predicted solar fluxes (units of kWh) on all PV panels 
-as cumulated over the step size provided by ECMWF for the next 10 days, GFS
+as cumulated over the step size provided by ECMWF for the next 15 days, GFS
 for the next 16 days, and open-meteo for a time horizon of 14 days. 
 Forecast data is updated 4 times a day - according to the cron job in docker. 
 Related fields: "ssdr" (ECMWF), "dswrf" (GFS), and "forecast" (open-meteo).
