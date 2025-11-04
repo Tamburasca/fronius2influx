@@ -7,6 +7,7 @@ import sys
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 
+import urllib3.exceptions
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 from requests import get, HTTPError, Response, exceptions
@@ -85,7 +86,10 @@ def main(
     try:
         content = get(url.format(**args))
         content.raise_for_status()  # HTTP status
-    except (HTTPError, exceptions.ReadTimeout) as e:
+    except (HTTPError,
+            exceptions.ReadTimeout,
+            exceptions.ConnectionError,
+            urllib3.exceptions.MaxRetryError) as e:
         logging.error(f"Error: {e}, {content.content()}")
         sys.exit(1)
 

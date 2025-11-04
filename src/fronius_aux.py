@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import math
 import os
 from datetime import datetime, timezone
 from enum import Enum, EnumMeta
@@ -7,6 +8,9 @@ from typing import Any
 from typing import Generator
 
 from cryptography.fernet import Fernet
+
+# The ASTM G-173 standard measures solar intensity over the band 280 to 4000 nm
+SOLAR_CONSTANT = 1_347.9  # W m⁻²
 
 MYFORMAT: str = ("%(asctime)s :: %(levelname)s: %(filename)s - %(name)s - "
                  "%(lineno)s - %(funcName)s()\t%(message)s")
@@ -89,6 +93,69 @@ class _Meta(EnumMeta):
                 member.kwargs['application'],
                 member.value
             )
+
+
+class Math:
+    @classmethod
+    def sindeg(cls, deg: float) -> float: return math.sin(math.radians(deg))
+
+    @classmethod
+    def cosdeg(cls, deg: float) -> float: return math.cos(math.radians(deg))
+
+    @classmethod
+    def asindeg(cls, r: float) -> float: return math.degrees(math.asin(r))
+
+
+def air_mass(
+        elevation: float,
+        altitude: float
+) -> tuple[float, float]:
+    """
+    calculate air mass attenuation
+    https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
+    air_mass = 1. / math.cos(math.radians(90. - el))
+    The Kasten and Young formula was originally given in terms of
+    elevation as follows
+    :param elevation: sun elevation angle in degrees
+    :param altitude: altitude of location in meters
+    :return:
+    air mass attenuation factor,
+    air mass
+    """
+    a = 0.00014 * altitude  # altitude correction factor
+    air_mass_revised = 1. / (
+            Math.cosdeg(90. - elevation) + 0.50572 * (6.07995 + elevation) ** -1.6364
+    )
+    return (
+        (1. - a) * 0.7 ** (air_mass_revised ** 0.678) + a,
+        air_mass_revised
+    )
+
+
+def direct_radiation_on_tilted_surface(
+        elevation: float,
+        azimuth: float,
+        inclination: float,
+        orientation: float,
+) -> float:
+    """
+    calculate angle between direct radiation and perpendicular line
+    of tilted PV surface
+    https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
+    :param elevation: sun elevation angle in degrees
+    :param azimuth: sun azimuth angle in degrees
+    :param inclination: panel inclination in degrees
+    :param orientation: panel orientation in degrees
+    :return: 
+    """
+    return max(
+        Math.cosdeg(elevation)
+        * Math.sindeg(inclination)
+        * Math.cosdeg(orientation - azimuth)
+        + Math.sindeg(elevation)
+        * Math.cosdeg(inclination),
+        0.
+    )
 
 
 def current_time_utc() -> str:

@@ -2,13 +2,11 @@
 
 import json
 import logging
-import math
 import os
 import sys
-from enum import Enum #, EnumMeta
+from enum import Enum
 from time import sleep
 from timeit import default_timer
-# from typing import Generator
 
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
@@ -25,7 +23,11 @@ from src.fronius_aux import (
     current_time_utc,
     MYFORMAT,
     _Meta,
-    StatusErrors
+    StatusErrors,
+    Math,
+    air_mass,
+    direct_radiation_on_tilted_surface,
+    SOLAR_CONSTANT
 )
 from src.fronius_ws_sync_client import WSSyncClient
 from src.wattpilot import Wattpilot
@@ -71,11 +73,9 @@ class FroniusEndpoints(
 
 
 class FroniusToInflux(object):
+    RETRY_PERIOD: int = 60  # seconds
     BACKOFF_INTERVAL = 5  # GET request every BACKOFF_INTERVAL seconds
     WRITE_CYCLE = 12  # write every WRITE_CYCLE th cycle
-    # The ASTM G-173 standard measures solar intensity over the band 280 to 4000 nm
-    SOLAR_CONSTANT = 1_347.9  # W m⁻²
-    A = 0.00014  # constant / m⁻¹
 
     def __init__(
             self,
@@ -116,7 +116,7 @@ class FroniusToInflux(object):
 
     def translate_response(self) -> list[dict[str, str | dict]]:
         collection = self.data['Head']['RequestArguments'].get('DataCollection')
-        timestamp = self.data['Head']['Timestamp'] # timestamp from response
+        timestamp = self.data['Head']['Timestamp']  # timestamp from response
         status = self.data['Head']['Status']
 
         if status['Code'] != 0:  # Fronius header error
@@ -253,20 +253,11 @@ class FroniusToInflux(object):
         if el > 0:
             altitude = self.parameter["location"]["altitude"]["value"]
             az = azimuth(observer=self.location.observer)
-            # https://www.pveducation.org/pvcdrom/properties-of-sunlight/air-mass#AMequation
-            # air_mass = 1. / math.cos(math.radians(90. - el))
-            # The Kasten and Young formula was originally given in terms of
-            # altitude el as
-            air_mass_revised = 1. / (
-                    math.cos(math.radians(90. - el))
-                    + 0.50572 * (6.07995 + el) ** -1.6364
-            )
-            air_mass_attenuation = (
-                    (1. - self.A * altitude) * 0.7 ** (air_mass_revised ** 0.678)
-                    + self.A * altitude
-            )
+            air_mass_attenuation, air_mass_revised = air_mass(
+                elevation=el,
+                altitude=altitude)
             # Direct beam intensity / W m⁻²
-            intens = self.SOLAR_CONSTANT * air_mass_attenuation
+            intens = SOLAR_CONSTANT * air_mass_attenuation
             result: dict[str, float | None] = {
                 "sun_elevation": el,
                 "sun_azimuth": az,
@@ -282,16 +273,12 @@ class FroniusToInflux(object):
                 air_mass_revised,
                 air_mass_attenuation))
             for item, value in self.parameter['housetop'].items():
-                # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
-                r = max(
-                    math.cos(math.radians(el))
-                    * math.sin(math.radians(value['inclination']['value']))
-                    * math.cos(math.radians(value['orientation']['value'] - az))
-                    + math.sin(math.radians(el))
-                    * math.cos(math.radians(value['inclination']['value'])),
-                    0.
-                )
-                incidence_angle_sun = math.degrees(math.asin(r))
+                r = direct_radiation_on_tilted_surface(
+                    elevation=el,
+                    azimuth=az,
+                    inclination=value['inclination']['value'],
+                    orientation=value['orientation']['value'])
+                incidence_angle_sun = Math.asindeg(r)
                 logging.debug("{0}, "
                               "incidence angle: {1} deg, "
                               "incidence factor: {2}, "
@@ -326,7 +313,7 @@ class FroniusToInflux(object):
         flag_sun_is_down: bool = False
         flag_connection: bool = False
         flag_exception: bool = False
-        counter: int  = 1
+        counter: int = 1
 
         write_api = self.client.write_api(  # batch mode
             # write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
@@ -380,7 +367,7 @@ class FroniusToInflux(object):
                                 "Time consumed for influxDB "
                                 "Sync Write API': {0:.2f} ms".format(
                                     (default_timer() - start_time) * 1_000))
-                        collected_data.clear() # faster than assign new list
+                        collected_data.clear()  # faster than assign new list
                         counter = 1
                     else:
                         counter += 1
@@ -403,26 +390,26 @@ class FroniusToInflux(object):
                     if not flag_sun_is_down:
                         logging.warning("Waiting for sun to rise ...")
                         flag_sun_is_down = True
-                    sleep(60)
+                    sleep(self.RETRY_PERIOD)
 
                 except (ConnectionError, HTTPError, ResponseHeaderError) as e:
                     if not flag_connection:
                         logging.error(
                             f"Connection/HTTP/Response Header error: {str(e)}")
                         logging.warning(
-                            "Waiting 60 s for exception to suspend ..."
+                            f"Waiting {self.RETRY_PERIOD}s for exception to suspend ..."
                         )
                         flag_connection = True
-                    sleep(60)
+                    sleep(self.RETRY_PERIOD)
 
                 except Exception as e:
                     if not flag_exception:
                         logging.error(f"Unknown exception: {str(e)}")
                         logging.warning(
-                            "Waiting 60 s for exception to suspend ..."
+                            f"Waiting {self.RETRY_PERIOD}s for exception to suspend ..."
                         )
                         flag_exception = True
-                    sleep(60)
+                    sleep(self.RETRY_PERIOD)
 
         except KeyboardInterrupt:
             print("Finishing. Goodbye!")
@@ -448,7 +435,7 @@ def main() -> None:
                         level=getattr(logging, logging_level),
                         datefmt="%Y-%m-%d %H:%M:%S")
     logging.getLogger("Rx").setLevel(logging.INFO)
-#    print([logging.getLogger(name) for name in logging.root.manager.loggerDict])
+    # print([logging.getLogger(name) for name in logging.root.manager.loggerDict])
 
     influxdb_host = os.getenv('INFLUXDB_HOST',
                               parameter['influxdb']['host'])

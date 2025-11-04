@@ -7,6 +7,17 @@ RUN apt-get update && \
     apt-get -y install cron
 RUN pip install --upgrade pip
 
+# in case pygrib fails with a future v>2.1.6, we got a fallback here
+#RUN apt-get install -y  \
+#    gcc  \
+#    libeccodes-dev
+#RUN pip install Cython packaging pyproj
+#
+#COPY src/pygrib-2.1.6 /app/src/pygrib
+#WORKDIR /app/src/pygrib
+#RUN ECCODES_DIR=/usr/include/x86_64-linux-gnu python setup.py install && \
+#    rm -rf /app/src/pygrib
+
 WORKDIR /app/
 
 # requirements
@@ -14,24 +25,10 @@ COPY src/requirements_forecast.txt /app/src/requirements_forecast.txt
 RUN pip install -r /app/src/requirements_forecast.txt && \
     rm -f /app/requirements_forecast.txt
 
-#RUN apt-get install -y  \
-#    gcc  \
-#    libeccodes-dev
-#RUN pip install Cython \
-#	packaging \
-#    pyproj
-#
-#COPY src/pygrib-2.1.6 /app/src/pygrib
-#WORKDIR /app/src/pygrib
-#RUN ECCODES_DIR=/usr/include/x86_64-linux-gnu python setup.py install && \
-#    rm -rf /app/src/pygrib
-
 # cleansing
 RUN apt-get -y autoremove && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-WORKDIR /app/
 
 # common modules
 COPY src/sun_influx.py /app/src/

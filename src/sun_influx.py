@@ -1,15 +1,19 @@
-import math
 from datetime import datetime, timedelta
 from typing import Generator
 
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 
+# internal imports
+from fronius_aux import (
+    Math,
+    air_mass,
+    direct_radiation_on_tilted_surface,
+    SOLAR_CONSTANT
+)
+
 
 class SunInflux(object):
-    # The ASTM G-173 standard measures solar intensity over the band 280 to 4000 nm
-    SOLAR_CONSTANT = 1_347.9  # W m⁻²
-    A = 0.00014  # constant / m⁻¹
 
     def __init__(
             self,
@@ -62,8 +66,7 @@ class SunInflux(object):
             result[dateandtime]['panels']['diffuse'] += (
                     value['area']['value']
                     * value['efficiency']['value']
-                    * math.sin(value['inclination']['value'])
-            )
+                    * (1. + Math.cosdeg(value['inclination']['value'])) * 0.5)
         # sun elevation
         el = elevation(observer=self.location.observer,
                        dateandtime=dateandtime,
@@ -73,39 +76,28 @@ class SunInflux(object):
             # sun azimuth
             az = azimuth(observer=self.location.observer,
                          dateandtime=dateandtime)
-            air_mass_revised = 1. / (
-                    math.cos(math.radians(90. - el))
-                    + 0.50572 * (6.07995 + el) ** -1.6364
-            )
-            air_mass_attenuation = (
-                    (1. - self.A * altitude) * 0.7 ** (air_mass_revised ** 0.678)
-                    + self.A * altitude
-            )
+            air_mass_attenuation, _ = air_mass(
+                elevation=el,
+                altitude=altitude)
             result[dateandtime]['sun']['elevation'] = el
             result[dateandtime]['sun']['azimuth'] = az
             result[dateandtime]['sun']['air_mass_attenuation'] = air_mass_attenuation
-            result[dateandtime]['sun']['power'] = (self.SOLAR_CONSTANT
-                                                   * math.sin(math.radians(el))
+            result[dateandtime]['sun']['power'] = (SOLAR_CONSTANT
+                                                   * Math.sindeg(el)
                                                    * air_mass_attenuation)
             # direct sunlight on all panels
             for _, value in self.parameter['housetop'].items():
-                # https://www.pveducation.org/pvcdrom/properties-of-sunlight/arbitrary-orientation-and-tilt
-                r = max(
-                    math.cos(math.radians(el))
-                    * math.sin(math.radians(value['inclination']['value']))
-                    * math.cos(math.radians(value['orientation']['value'] - az))
-                    + math.sin(math.radians(el))
-                    * math.cos(math.radians(value['inclination']['value'])),
-                    0.
-                )
-                # incidence_angle_sun = math.degrees(math.asin(r))
+                r = direct_radiation_on_tilted_surface(
+                    elevation=el,
+                    azimuth=az,
+                    inclination=value['inclination']['value'],
+                    orientation=value['orientation']['value'])
                 result[dateandtime]['panels']['direct'] += (
-                        self.SOLAR_CONSTANT
+                        SOLAR_CONSTANT
                         * air_mass_attenuation
                         * value['area']['value']
                         * value['efficiency']['value']
-                        * r
-                )
+                        * r)
 
         return result
 

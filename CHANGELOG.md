@@ -6,6 +6,17 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.7.3 (2025-11-04)
+### Added
+### Changed
+- Retry period of time is fixed variable
+- New math functions in fronius_aux.py
+### Fixed
+- Calulation of solar influx corrected for diffuse radiation depending on
+inclination angle of panels
+### Deprecated
+### Removed
+### Security
 ## 1.7.2 (2025-10-23)
 ### Added
 ### Changed
@@ -20,7 +31,6 @@
 ### Added
 ### Changed
 - architecture pic
-- README.md
 ### Fixed
 ### Deprecated
 ### Removed
