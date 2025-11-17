@@ -67,7 +67,7 @@ class FroniusEndpoints(
     # OBSOLETE = "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
 
     @classmethod
-    def get_endpoints(cls, **kwargs) -> Enum:
+    def get(cls, **kwargs) -> Enum:
         cls.kwargs = kwargs
         return cls
 
@@ -453,7 +453,7 @@ def main() -> None:
         verify_ssl=parameter['influxdb']['verify_ssl']
     )
 
-    endpoints = FroniusEndpoints.get_endpoints(
+    endpoints = FroniusEndpoints.get(
         host=parameter['server']['host'],
         application=parameter['server']['application']
     )

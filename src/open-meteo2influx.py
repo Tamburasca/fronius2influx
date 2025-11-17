@@ -11,6 +11,7 @@ import urllib3.exceptions
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 from requests import get, HTTPError, Response, exceptions
+from urllib3.exceptions import ReadTimeoutError
 
 # internal
 from fronius_aux import get_secret
@@ -87,10 +88,11 @@ def main(
         content = get(url.format(**args))
         content.raise_for_status()  # HTTP status
     except (HTTPError,
+            ReadTimeoutError,
             exceptions.ReadTimeout,
             exceptions.ConnectionError,
             urllib3.exceptions.MaxRetryError) as e:
-        logging.error(f"Error: {e}, {content.content()}")
+        logging.error(f"Error: {e}")
         sys.exit(1)
 
     result = content.json()['hourly']

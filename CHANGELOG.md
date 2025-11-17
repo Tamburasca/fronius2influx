@@ -6,6 +6,14 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.7.4 (2025-11-17)
+### Added
+### Changed
+### Fixed
+- Catch timeout exception in open-meteo2influx.py
+### Deprecated
+### Removed
+### Security
 ## 1.7.3 (2025-11-04)
 ### Added
 ### Changed
