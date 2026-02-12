@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-for further considerations for middelware:
+for further considerations for middleware:
 https://www.starlette.io/middleware/#__tabbed_1_1
 """
 import json
@@ -186,7 +186,7 @@ async def retrieve():
 @app.get("/query/battery",
          name="Battery measurements",
          tags=["readings"])
-async def query_battery() -> None:
+async def query_battery() -> JSONResponse:
     try:
         result: dict[str, float] = {
             "BatteryLoadingLevel": pp.battery['StateOfCharge_Relative'],
@@ -205,7 +205,7 @@ async def query_battery() -> None:
 @app.get("/query/power",
          name="Energy measurements",
          tags=["readings"])
-async def query_power() -> None:
+async def query_power() -> JSONResponse:
     try:
         result: dict[str, float] = {
             "SolarDC":
@@ -237,7 +237,7 @@ async def query_power() -> None:
 @app.get("/query/status",
          name="Status",
          tags=["status"])
-async def query_status() -> None:
+async def query_status() -> JSONResponse:
     try:
         result: dict[str, str] = {
             "Smart Meter Status":
@@ -266,7 +266,7 @@ async def query_status() -> None:
 @app.get("/query/wallbox_status",
          name="Wallbox status",
          tags=["wallbox"])
-async def query_wallbox_status() -> None:
+async def query_wallbox_status() -> JSONResponse:
     v = pp.wallbox.get('Wallbox connected', False)
     result: dict[str, float | bool | str] = {
         "Wallbox connected": v
@@ -292,7 +292,7 @@ async def query_wallbox_status() -> None:
 @app.get("/query/wallbox_power",
          name="Wallbox readings",
          tags=["wallbox"])
-async def query_wallbox_power() -> None:
+async def query_wallbox_power() -> JSONResponse:
     result: dict[str, float] = dict()
     v = pp.wallbox.get('Wallbox connected', False)
     if v:

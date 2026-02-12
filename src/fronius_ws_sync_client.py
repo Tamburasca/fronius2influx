@@ -28,7 +28,7 @@ class WSSyncClient:
 
     def __call__(
             self,
-            message: dict = None
+            message: list[dict]
     ) -> None:
         try:
             if not self.websocket:

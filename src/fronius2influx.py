@@ -67,7 +67,7 @@ class FroniusEndpoints(
     # OBSOLETE = "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=3PInverterData&DeviceId=1"
 
     @classmethod
-    def get(cls, **kwargs) -> Enum:
+    def get(cls, **kwargs) -> _Meta:
         cls.kwargs = kwargs
         return cls
 
@@ -82,8 +82,8 @@ class FroniusToInflux(object):
             *,
             client: InfluxDBClient,
             parameter: dict,
-            endpoints: list[str],
-            wallbox: Wattpilot,
+            endpoints: _Meta,
+            wallbox: Wattpilot | None,
             **kwargs
     ):
         self.client = client
@@ -248,6 +248,7 @@ class FroniusToInflux(object):
             raise DataCollectionError("Unknown data collection type.")
 
     def sun_parameter(self) -> list[dict[str, str | dict]]:
+        result: dict[str, dict | float]
         el = elevation(observer=self.location.observer,
                        with_refraction=True)
         if el > 0:
@@ -258,7 +259,7 @@ class FroniusToInflux(object):
                 altitude=altitude)
             # Direct beam intensity / W m⁻²
             intens = SOLAR_CONSTANT * air_mass_attenuation
-            result: dict[str, float | None] = {
+            result = {
                 "sun_elevation": el,
                 "sun_azimuth": az,
                 "air_mass": air_mass_revised,
@@ -421,7 +422,7 @@ class FroniusToInflux(object):
 
 
 def main() -> None:
-    wallbox: Wattpilot = None
+    wallbox = None
 
     parameter_file = "{}/data/parameter.json".format(
         os.path.dirname(

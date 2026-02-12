@@ -83,7 +83,7 @@ def main(
     args['_forecast_horizon'] = 14  # days
     args['_past_days'] = 0  # days
 
-    content: Response = None
+    content: Response
     try:
         content = get(url.format(**args))
         content.raise_for_status()  # HTTP status

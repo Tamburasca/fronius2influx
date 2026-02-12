@@ -74,7 +74,7 @@ class StatusCode(str, Enum):  # ToDo: needed?
             cls,
             value,
             key
-    ) -> Enum:
+    ) -> str:
         obj = str.__new__(cls, [str, int])
         obj._value_ = key
         obj.__n = value
@@ -170,7 +170,7 @@ def flatten_json(y: dict) -> dict[str, Any]:
     """
     out: dict[str, Any] = dict()
 
-    def flatten(x, name='') -> dict[str, Any]:
+    def flatten(x, name='') -> None:
         if type(x) is dict:
             for a in x:
                 flatten(x[a], name + a + '_')

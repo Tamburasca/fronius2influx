@@ -6,6 +6,17 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.7.5 (2026-02-12)
+### Added
+### Changed
+- upgrade various modules
+### Fixed
+- typing
+### Deprecated
+### Removed
+### Security
+- upgrade cryptography module owing to security alert 
+https://github.com/Tamburasca/fronius2influx/security/dependabot/2
 ## 1.7.4 (2025-11-17)
 ### Added
 ### Changed
