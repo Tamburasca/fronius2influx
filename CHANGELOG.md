@@ -6,6 +6,16 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.8.0 (2026-03-07)
+### Added
+### Changed
+- Grafana: new dashboard for Aggregate Today - overall maximum
+- python:3.14-slim in docker utilized
+- websocket coding modified for Current Reading app
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.7.5 (2026-02-12)
 ### Added
 ### Changed
@@ -31,7 +41,7 @@ https://github.com/Tamburasca/fronius2influx/security/dependabot/2
 - Retry period of time is fixed variable
 - New math functions in fronius_aux.py
 ### Fixed
-- Calulation of solar influx corrected for diffuse radiation depending on
+- Calculation of solar influx corrected for diffuse radiation depending on
 inclination angle of panels
 ### Deprecated
 ### Removed
@@ -171,7 +181,7 @@ as computed utilizing the ECMWF weather forecast (open data)
 ### Security
 ## 0.2.0 (2024-10-27)
 ### Added
-- Wallbox - Wattpilot implented for writing to influxdb
+- Wallbox - Wattpilot implemented for writing to influxdb
 ### Changed
 ### Fixed
 ### Deprecated

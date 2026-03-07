@@ -8,20 +8,23 @@ import "timezone"
 
 option location = timezone.location(name: "Europe/Berlin")
 
+fieldsCommon = ["UDC", "IDC", "UDC_2", "IDC_2", "PAC"]
+RES = 60 // time resolution
+
 ReLU = (x) => if exists x then
                 if x > 0.0 then x
                 else 0.0
               else debug.null(type: "float")
+
 multByX = (tables=<-, x) =>
     tables
         |> map(fn: (r) => ({r with _value: r._value * x}))
+
 divByX = (tables=<-, x) =>
     tables
         |> map(fn: (r) => ({r with _value: r._value / x}))
-fieldsCommon = ["UDC", "IDC", "UDC_2", "IDC_2", "PAC"]
-RES = 60 // time resolution
 
-from(bucket: "Fronius")
+tmp = from(bucket: "Fronius")
 //  |> range(start: today())
   |> range(start: v.timeRangeStart, stop:v.timeRangeStop)
   |> filter(fn: (r) => (r["_measurement"] == "Battery" and (r["_field"] == "Voltage_DC" or r["_field"] == "Current_DC")) or
@@ -68,5 +71,17 @@ from(bucket: "Fronius")
                    ])
   |> experimental.unpivot()
   |> cumulativeSum()
+  |> last()
   |> divByX(x: 3600000.0 / float(v: RES))
+
+m = tmp
+  |> highestMax(n:1, groupColumns: ["_field"])
+  |> keep(columns:["_value"])
+  |> rename(columns: {_value: "max"})
+
+s = tmp
+  |> pivot(rowKey: ["_time", "_value"], columnKey: ["_field"], valueColumn: "_value")
+  |> drop(columns: ["_time"])
+
+union(tables: [s, m])
   |> yield()

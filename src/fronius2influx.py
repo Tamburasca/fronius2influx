@@ -11,7 +11,7 @@ from timeit import default_timer
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
-from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.client.write_api import SYNCHRONOUS, WritePrecision
 from requests import get
 from requests.exceptions import ConnectionError, HTTPError
 
@@ -75,7 +75,7 @@ class FroniusEndpoints(
 class FroniusToInflux(object):
     RETRY_PERIOD: int = 60  # seconds
     BACKOFF_INTERVAL = 5  # GET request every BACKOFF_INTERVAL seconds
-    WRITE_CYCLE = 12  # write every WRITE_CYCLE th cycle
+    WRITE_CYCLE = 12  # write every WRITE_CYCLE th cycle (= every 60s, where BACKOFF_INTERVAL = 5s)
 
     def __init__(
             self,
@@ -362,7 +362,7 @@ class FroniusToInflux(object):
                                 bucket="Fronius",
                                 org="Fronius",
                                 record=collected_data,
-                                write_precision='s'
+                                write_precision=WritePrecision.S
                             )
                             logging.debug(
                                 "Time consumed for influxDB "
