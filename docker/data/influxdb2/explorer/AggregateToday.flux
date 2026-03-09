@@ -74,11 +74,13 @@ tmp = from(bucket: "Fronius")
   |> last()
   |> divByX(x: 3600000.0 / float(v: RES))
 
+// Get max values for all fields
 m = tmp
   |> highestMax(n:1, groupColumns: ["_field"])
   |> keep(columns:["_value"])
   |> rename(columns: {_value: "max"})
 
+// Get cumulative sums for all fields
 s = tmp
   |> pivot(rowKey: ["_time", "_value"], columnKey: ["_field"], valueColumn: "_value")
   |> drop(columns: ["_time"])

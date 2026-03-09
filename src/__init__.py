@@ -23,11 +23,11 @@ in python3
 """
 
 __author__ = "Dr. Ralf Antonius Timmermann"
-__copyright__ = ("Copyright (c) 2023-2025, Dr. Ralf Antonius Timmermann "
+__copyright__ = ("Copyright (c) 2023-2026, Ralf A. Timmermann "
                  "All rights reserved.")
 __credits__ = ""
 __license__ = "BSD-3-Clause"
-__version__ = "1.7.5"
-__maintainer__ = "Dr. Ralf Antonius Timmermann"
+__version__ = "1.8.0"
+__maintainer__ = "Ralf A. Timmermann"
 __email__ = "ralf.timmermann@gmx.de"
 __status__ = "Prod"
