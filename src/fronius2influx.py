@@ -320,7 +320,11 @@ class FroniusToInflux(object):
             # write_options=WriteOptions(flush_interval=1_000)  # flush after 1s
             write_options=WriteOptions(SYNCHRONOUS)
         )
-        ws_client = WSSyncClient()  # for Rest API
+        # for Rest API's ws client, we will have one connection solely
+        ws_client = WSSyncClient(
+            application=self.parameter['RestAPI']['websocket'],
+            port=self.parameter['RestAPI']['port']
+        )
 
         try:
             while True:

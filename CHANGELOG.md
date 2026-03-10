@@ -9,9 +9,10 @@
 ## 1.8.0 (2026-03-07)
 ### Added
 ### Changed
-- Grafana: new dashboard for Aggregate Today - overall maximum
+- Grafana: new dashboard for "Aggregate Today" - overall maximum
 - python:3.14-slim in docker utilized
 - websocket coding modified for Current Reading app
+- websocket parameters added to config file
 ### Fixed
 ### Deprecated
 ### Removed

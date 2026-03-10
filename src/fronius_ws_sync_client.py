@@ -10,55 +10,58 @@ from websockets import ConcurrencyError
 from websockets.exceptions import ConnectionClosedError
 from websockets.sync.client import connect, ClientConnection
 
-WEBSOCKET_PORT = 5000
-WEBSOCKET_ENDPOINT = "/communicate"
-URI = f"ws://localhost:{WEBSOCKET_PORT}{WEBSOCKET_ENDPOINT}"
 
-
-class WSSyncClient:
-    def __init__(self):
-        self.websocket: ClientConnection | None = None
-        self.connected: bool = True
-        self.msg_reconnecting: str = "Reconnecting to Websocket Server ..."
+class WSSyncClient(object):
+    def __init__(
+            self,
+            application: str,
+            port: int
+    ) -> None:
+        self.application = application
+        self.port = port
+        self.__uri = f"ws://localhost:{self.port}{self.application}"
+        self.__websocket: ClientConnection | None = None
+        self.__connected: bool = True
+        self.__msg_reconnecting: str = "Reconnecting to Websocket Server ..."
 
     def _set_not_connected(self) -> None:
-        if self.websocket:
-            self.websocket.close()  # idempotent
-            self.websocket = None  # may be obsolete
-        self.connected = False
+        if self.__websocket:
+            self.__websocket.close()  # idempotent
+            self.__websocket = None  # may be obsolete
+        self.__connected = False
 
     def __call__(
             self,
             message: list[dict]
     ) -> None:
         try:
-            if not self.websocket:
-                self.websocket = connect(URI)
-                if self.connected:
+            if not self.__websocket:
+                self.__websocket = connect(self.__uri)
+                if self.__connected:
                     logging.info(f"Connected to Websocket Server ...")
-            if not self.connected:
+            if not self.__connected:
                 logging.info(f"Reconnected to Websocket Server ...")
-                self.connected = True
-            self.websocket.send(json.dumps(message))
-            verify = self.websocket.recv()
+                self.__connected = True
+            self.__websocket.send(json.dumps(message))
+            verify = self.__websocket.recv()
             assert message == json.loads(verify), "Websocket message mismatch!"
 
         # when server never wasn't up yet
         except ConnectionRefusedError as e:
-            if self.connected:
+            if self.__connected:
                 logging.warning("ConnectionRefusedError: {}. {}".format(
-                    e, self.msg_reconnecting))
+                    e, self.__msg_reconnecting))
                 self._set_not_connected()
 
         # after server was shut down and connection was established before
         except ConnectionClosedError as e:
-            if self.connected:
+            if self.__connected:
                 logging.warning("ConnectionClosedError: {}. {}".format(
-                    e, self.msg_reconnecting))
+                    e, self.__msg_reconnecting))
                 self._set_not_connected()
 
         except ConcurrencyError as e:  # ToDo is applicable, as no two threads?
-            if self.connected:
+            if self.__connected:
                 logging.warning("ConcurrencyError: {}.".format(e))
 
         except AssertionError as e:
@@ -66,7 +69,7 @@ class WSSyncClient:
 
         except OSError as e:
             logging.warning("OSError: {}. {}".format(
-                e, self.msg_reconnecting))
+                e, self.__msg_reconnecting))
             self._set_not_connected()
 
         except (Exception,) as e:

@@ -6,6 +6,7 @@ https://www.starlette.io/middleware/#__tabbed_1_1
 """
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -22,7 +23,6 @@ from src.fronius_aux import (
     StatusErrors
 )
 from src.fronius_aux import MYFORMAT
-from src.fronius_ws_sync_client import WEBSOCKET_PORT, WEBSOCKET_ENDPOINT
 
 logging_level: str = "INFO"
 logging.basicConfig(format=MYFORMAT,
@@ -153,6 +153,12 @@ async def lifespan(app_c: FastAPI):
 def relu(x: float) -> float: return max(0., x)
 
 
+parameter_file = "{}/data/parameter.json".format(
+    os.path.dirname(
+        os.path.realpath(__file__)
+    ))
+with open(parameter_file, 'r') as f:
+    parameter = json.load(f)
 pp = PostProcess()
 manager = ConnectionManager()
 app = FastAPI(title="Fronius Inverter Direct Readout",
@@ -161,7 +167,7 @@ app = FastAPI(title="Fronius Inverter Direct Readout",
               middleware=[Middleware(ASGIMiddleware), ])
 
 
-@app.websocket(WEBSOCKET_ENDPOINT)  # websocket endpoint
+@app.websocket(parameter['RestAPI']['websocket'])  # websocket endpoint
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
@@ -317,7 +323,7 @@ async def query_wallbox_power() -> JSONResponse:
 def main():
     config = {
         "host": "0.0.0.0",
-        "port": WEBSOCKET_PORT,
+        "port": parameter['RestAPI']['port'],  # same port for ws and http Rest API
         "timeout_keep_alive": 60,
         "log_level": "warning"
     }

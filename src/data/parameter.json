@@ -63,6 +63,10 @@
         "organization": "Fronius",
         "bucket": "Fronius"
     },
+    "RestAPI": {
+        "websocket": "/communicate",
+        "port": 5000
+    },
     "ecmwf_forecast": {
         "parameter" : ["ssrd"]
     },
