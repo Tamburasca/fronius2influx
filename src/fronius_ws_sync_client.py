@@ -19,7 +19,7 @@ class WSSyncClient(object):
     ) -> None:
         self.application = application
         self.port = port
-        self.__uri = f"ws://localhost:{self.port}{self.application}"
+        self.__uri = f"ws://localhost:{port}{application}"
         self.__websocket: ClientConnection | None = None
         self.__connected: bool = True
         self.__msg_reconnecting: str = "Reconnecting to Websocket Server ..."

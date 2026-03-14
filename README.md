@@ -70,7 +70,7 @@ The current installation runs on a Raspberry Pi 4 B (with 4 GB RAM and a
 
 Please create the token files inside [docker/data/secrets](https://github.com/Tamburasca/fronius2influx/tree/main/docker/data/secrets/README.md) 
 appropriately. The tokens for read and write access to the influxDB are 
-visible in the docker-compose logs after first initialization.
+visible in the docker-compose logs after its initialization.
 
 # Visualization
 available via Grafana 

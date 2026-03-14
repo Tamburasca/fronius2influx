@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 20,
   "links": [],
   "panels": [
     {
@@ -92,22 +92,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "yellow",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "BatteryDischarged"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
+                  "fixedColor": "orange",
                   "mode": "fixed"
                 }
               }
@@ -122,7 +107,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "text",
+                  "fixedColor": "red",
                   "mode": "fixed"
                 }
               }
@@ -137,7 +122,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "text",
+                  "fixedColor": "green",
                   "mode": "fixed"
                 }
               }
@@ -168,36 +153,6 @@
                 "id": "color",
                 "value": {
                   "fixedColor": "yellow",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "UsageDirect"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "ProdIn"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
                   "mode": "fixed"
                 }
               }
@@ -245,7 +200,47 @@
           "refId": "A"
         }
       ],
-      "title": "Daily Aggregates For ${__from:date:MM-YYYY}",
+      "title": "Daily Aggregates For ${__from:date:MM/YYYY}",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "BatteryCharged": true,
+              "BatteryDischarged": true,
+              "ProdIn": true,
+              "Time": false,
+              "UsageDirect": true,
+              "UsageIn": false
+            },
+            "includeByName": {},
+            "indexByName": {
+              "BatteryCharged": 8,
+              "BatteryDischarged": 9,
+              "NetFrom": 6,
+              "NetTo": 7,
+              "PowerConsumed": 5,
+              "PowerSolarDC": 2,
+              "ProdIn": 4,
+              "Time": 0,
+              "UsageDirect": 1,
+              "UsageIn": 3
+            },
+            "renameByName": {
+              "NetFrom": "Net Acquisition",
+              "NetTo": "Net Feed-In",
+              "PowerConsumed": "Power Consumed",
+              "PowerSolarDC": "Solar Power",
+              "ProdIn": "",
+              "UsageIn": "Inhouse Usage"
+            }
+          }
+        }
+      ],
       "type": "barchart"
     }
   ],
@@ -265,6 +260,6 @@
   "timepicker": {},
   "timezone": "",
   "title": "Aggregates Daily",
-  "uid": "f5709f11-96fa-40b5-84bc-086e32a6579f",
-  "version": 31
+  "uid": "dffp2n2psa0aoa",
+  "version": 13
 }

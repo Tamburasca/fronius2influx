@@ -15,10 +15,11 @@
       }
     ]
   },
+  "description": "Yearly Aggreates",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 13,
+  "id": 22,
   "links": [],
   "panels": [
     {
@@ -76,22 +77,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "yellow",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "BatteryDischarged"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
+                  "fixedColor": "orange",
                   "mode": "fixed"
                 }
               }
@@ -106,7 +92,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "text",
+                  "fixedColor": "red",
                   "mode": "fixed"
                 }
               }
@@ -121,7 +107,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "text",
+                  "fixedColor": "green",
                   "mode": "fixed"
                 }
               }
@@ -160,42 +146,20 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "UsageDirect"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "ProdIn"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "Time"
             },
             "properties": [
               {
                 "id": "custom.axisPlacement",
-                "value": "hidden"
+                "value": "auto"
+              },
+              {
+                "id": "unit",
+                "value": "time: YYYY"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Year"
               }
             ]
           }
@@ -237,11 +201,51 @@
             "type": "influxdb",
             "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
           },
-          "query": "from(bucket: \"aggregates\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"daily\")\n  |> aggregateWindow(every: 1y, fn: sum, createEmpty:false)\n  |> timeShift(duration: -3h)\n  |> drop(columns: [\"_measurement\"])",
+          "query": "// import \"experimental\"\nfrom(bucket: \"aggregates\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"daily\")\n  |> aggregateWindow(every: 1y, fn: sum, createEmpty:false)\n  |> timeShift(duration: -3h)\n  |> drop(columns: [\"_measurement\"])\n// |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n// |> map(fn: (r) => ({r with \"test\": r.UsageDirect / r.PowerSolarDC}))\n// |> experimental.unpivot()\n",
           "refId": "A"
         }
       ],
-      "title": "Aggregates For ${__from:date:YYYY}",
+      "title": "Yearly Aggregates",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "BatteryCharged": true,
+              "BatteryDischarged": true,
+              "ProdIn": true,
+              "Time": false,
+              "UsageDirect": true
+            },
+            "includeByName": {},
+            "indexByName": {
+              "BatteryCharged": 1,
+              "BatteryDischarged": 2,
+              "NetFrom": 6,
+              "NetTo": 7,
+              "PowerConsumed": 5,
+              "PowerSolarDC": 3,
+              "ProdIn": 8,
+              "Time": 0,
+              "UsageDirect": 9,
+              "UsageIn": 4
+            },
+            "renameByName": {
+              "NetFrom": "Net Acquisition",
+              "NetTo": "Net Feed-In",
+              "PowerConsumed": "Power Consumed",
+              "PowerSolarDC": "Solar Power",
+              "UsageIn": "Inhouse Usage"
+            }
+          }
+        }
+      ],
       "type": "barchart"
     }
   ],
@@ -255,12 +259,12 @@
     "list": []
   },
   "time": {
-    "from": "now/y",
+    "from": "now/y-y",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Aggregates Yearly",
-  "uid": "d54bbb82-e64c-482a-9b58-982ed18cd59d",
-  "version": 13
+  "uid": "effq31ygddssgd",
+  "version": 18
 }
