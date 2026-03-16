@@ -235,6 +235,23 @@
         }
       ],
       "title": "Power Total Live",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "BatteryLoadingLevel": "Battery Charging Level",
+              "PowerBattery": "Power To / From Battery",
+              "PowerConsumed": "Power Consumed",
+              "PowerNet": "Power Net Acquired / Feed-In",
+              "PowerSolarDC": "Solar Power"
+            }
+          }
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -326,7 +343,7 @@
               },
               {
                 "id": "max",
-                "value": 2.5
+                "value": 2
               },
               {
                 "id": "min",
@@ -372,7 +389,7 @@
               },
               {
                 "id": "max",
-                "value": 2.5
+                "value": 2
               },
               {
                 "id": "min",
@@ -489,12 +506,8 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "Intensity_NE",
-                  "Intensity_SW",
-                  "Intensity_TOT",
-                  "PDC_NE",
-                  "PDC_SW",
-                  "PDC_TOT"
+                  "Ratio SW",
+                  "Ratio NW"
                 ],
                 "prefix": "All except:",
                 "readOnly": true
@@ -546,6 +559,26 @@
         }
       ],
       "title": "Inserted Power",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Intensity_NE": "Calculated NE",
+              "Intensity_SW": "Calculated SW",
+              "Intensity_TOT": "Calculated Total",
+              "PDC_NE": "Collected NE",
+              "PDC_SW": "Collected SW",
+              "PDC_TOT": "Collected Total",
+              "diffuse_NE": "Ratio NW",
+              "diffuse_SW": "Ratio SW"
+            }
+          }
+        }
+      ],
       "type": "timeseries"
     }
   ],
@@ -566,5 +599,5 @@
   "timezone": "",
   "title": "Power Live",
   "uid": "e72b3f30-38d7-4655-b5d8-7ed416984abe",
-  "version": 43
+  "version": 52
 }
