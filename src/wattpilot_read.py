@@ -10,6 +10,12 @@ from src.wattpilot import Wattpilot
 def wattpilot_get(
         wallbox: Wattpilot = None
 ) -> list[dict[str, str | dict]]:
+    """
+    prepare wallbox results for influxDB
+    :param wallbox:
+    :return:
+    """
+
     result = list()
     if wallbox:
         if wallbox.connected:
@@ -34,6 +40,11 @@ def wattpilot_get(
 def wattpilot_status(
         wallbox: Wattpilot = None
 ) -> list[dict[str, Any]]:
+    """
+    prepare wallbox status for influxDB
+    :param wallbox:
+    :return:
+    """
     fields = {"Wallbox connected": False}
     if wallbox:
         if wallbox.connected:

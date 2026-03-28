@@ -16,13 +16,14 @@ from starlette.middleware import Middleware
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 # internal
+from src.__init__ import __version__
 from src.fronius_aux import (
     StatusDevice,
     StatusBattery,
     VisibleDevice,
-    StatusErrors
+    StatusErrors,
+    MYFORMAT
 )
-from src.fronius_aux import MYFORMAT
 
 logging_level: str = "INFO"
 logging.basicConfig(format=MYFORMAT,
@@ -314,6 +315,19 @@ async def query_wallbox_power() -> JSONResponse:
             return JSONResponse(
                 content={},
                 status_code=status.HTTP_206_PARTIAL_CONTENT)
+
+    return JSONResponse(
+        content=result,
+        status_code=status.HTTP_200_OK)
+
+
+@app.get("/query/app_version",
+         name="Application Version",
+         tags=["status"])
+async def query_version() -> JSONResponse:
+    result: dict[str, str] = {
+        "Version": __version__
+    }
 
     return JSONResponse(
         content=result,

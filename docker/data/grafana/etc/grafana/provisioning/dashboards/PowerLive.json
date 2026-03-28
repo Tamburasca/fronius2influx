@@ -343,7 +343,7 @@
               },
               {
                 "id": "max",
-                "value": 2
+                "value": 2.25
               },
               {
                 "id": "min",
@@ -389,7 +389,7 @@
               },
               {
                 "id": "max",
-                "value": 2
+                "value": 2.25
               },
               {
                 "id": "min",
@@ -506,8 +506,10 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "Ratio SW",
-                  "Ratio NW"
+                  "Calculated Total",
+                  "Collected Total",
+                  "Ratio NE",
+                  "Ratio SW"
                 ],
                 "prefix": "All except:",
                 "readOnly": true
@@ -554,7 +556,7 @@
             "type": "influxdb",
             "uid": "e2f48814-8bd5-484d-8c8a-43571a6df6f2"
           },
-          "query": "//\n// Inserted Power Total\n//\n\nimport \"strings\"\nimport \"experimental\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Berlin\")\n\nfields1 = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\"]\nLIMIT_INCIDENCE = 0.0 // 0.087 corresponds to >5 degree incidence angle\nrES = 6 // time resolution\n\ninserted = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"CommonInverterData\" and contains(value: r._field, set: fields1))\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with PDC_SW: r.IDC * r.UDC,\n                             PDC_NE: r.IDC_2 * r.UDC_2,\n                             PDC_TOT: r.PDC_NE + r.PDC_SW}))\n  |> map(fn: (r) => ({r with PDC_TOT: r.PDC_NE + r.PDC_SW}))\n  |> keep(columns: [\"_time\", \"PDC_SW\", \"PDC_NE\", \"PDC_TOT\"])\n  |> experimental.unpivot()\n\nfields2 = [\"1_intensity_corr_area_eff\", \"1_incidence_ratio\", \"2_intensity_corr_area_eff\", \"2_incidence_ratio\"]\nsolar = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"SolarData\" and contains(value: r._field, set: fields2))\n  |> drop(columns: [\"_measurement\"])\n\ncombine = union(tables: [solar, inserted])\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration results ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with\n                      diffuse_SW: if r[\"1_incidence_ratio\"] < LIMIT_INCIDENCE then r.PDC_SW / r[\"1_intensity_corr_area_eff\"]\n                      else  r.PDC_SW / (r[\"1_incidence_ratio\"] * r[\"1_intensity_corr_area_eff\"]),\n                      \n                      diffuse_NE: if r[\"2_incidence_ratio\"] < LIMIT_INCIDENCE then r.PDC_NE / r[\"2_intensity_corr_area_eff\"]\n                      else  r.PDC_NE / (r[\"2_incidence_ratio\"] * r[\"2_intensity_corr_area_eff\"]),\n                      \n                      Intensity_SW: r[\"1_incidence_ratio\"] * r[\"1_intensity_corr_area_eff\"],\n                      \n                      Intensity_NE: r[\"2_incidence_ratio\"] * r[\"2_intensity_corr_area_eff\"],\n                      \n                      Intensity_TOT: r[\"1_incidence_ratio\"] * r[\"1_intensity_corr_area_eff\"]\n                      \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t+ r[\"2_incidence_ratio\"] * r[\"2_intensity_corr_area_eff\"]\n                      }))\n  |> drop(columns: [\"_start\", \"_stop\", \"1_intensity_corr_area_eff\", \"1_incidence_ratio\", \"2_intensity_corr_area_eff\", \"2_incidence_ratio\"])\n  |> yield()",
+          "query": "//\n// Inserted Power Total\n//\n\nimport \"strings\"\nimport \"experimental\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Berlin\")\n\nfields1 = [\"UDC\", \"IDC\", \"UDC_2\", \"IDC_2\"]\nLIMIT_INCIDENCE = 0.0 // 0.087 corresponds to >5 degree incidence angle\nrES = 6 // time resolution\n\ninserted = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"CommonInverterData\" and contains(value: r._field, set: fields1))\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with PDC_SW: r.IDC * r.UDC,\n                             PDC_NE: r.IDC_2 * r.UDC_2,\n                             PDC_TOT: r.PDC_NE + r.PDC_SW}))\n  |> map(fn: (r) => ({r with PDC_TOT: r.PDC_NE + r.PDC_SW}))\n  |> keep(columns: [\"_time\", \"PDC_SW\", \"PDC_NE\", \"PDC_TOT\"])\n  |> experimental.unpivot()\n\nfields2 = [\"1_intensity_corr_area_eff\", \"1_incidence_ratio\", \"2_intensity_corr_area_eff\", \"2_incidence_ratio\"]\nsolar = from(bucket: \"Fronius\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"SolarData\" and contains(value: r._field, set: fields2))\n  |> drop(columns: [\"_measurement\"])\n\ncombine = union(tables: [solar, inserted])\n  |> aggregateWindow(every: duration(v: rES * 1000000000), fn: mean) // duration results ns\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with\n                      diffuse_SW: if r[\"1_incidence_ratio\"] <= LIMIT_INCIDENCE \n                      then r.PDC_SW / r[\"1_intensity_corr_area_eff\"]\n                      else  r.PDC_SW / (r[\"1_incidence_ratio\"] * r[\"1_intensity_corr_area_eff\"]),\n                      \n                      diffuse_NE: if r[\"2_incidence_ratio\"] <= LIMIT_INCIDENCE \n                      then r.PDC_NE / r[\"2_intensity_corr_area_eff\"] \n                      else  r.PDC_NE / (r[\"2_incidence_ratio\"] * r[\"2_intensity_corr_area_eff\"]),\n                      \n                      Intensity_SW: r[\"1_incidence_ratio\"] * r[\"1_intensity_corr_area_eff\"],\n                      \n                      Intensity_NE: r[\"2_incidence_ratio\"] * r[\"2_intensity_corr_area_eff\"],\n                      \n                      Intensity_TOT: r[\"1_incidence_ratio\"] * r[\"1_intensity_corr_area_eff\"]\n                      \t+ r[\"2_incidence_ratio\"] * r[\"2_intensity_corr_area_eff\"]\n                      }))\n  |> drop(columns: [\"_start\", \"_stop\", \"1_intensity_corr_area_eff\", \"1_incidence_ratio\", \"2_intensity_corr_area_eff\", \"2_incidence_ratio\"])\n  |> yield()",
           "refId": "A"
         }
       ],
@@ -573,7 +575,7 @@
               "PDC_NE": "Collected NE",
               "PDC_SW": "Collected SW",
               "PDC_TOT": "Collected Total",
-              "diffuse_NE": "Ratio NW",
+              "diffuse_NE": "Ratio NE",
               "diffuse_SW": "Ratio SW"
             }
           }
@@ -599,5 +601,5 @@
   "timezone": "",
   "title": "Power Live",
   "uid": "e72b3f30-38d7-4655-b5d8-7ed416984abe",
-  "version": 52
+  "version": 64
 }

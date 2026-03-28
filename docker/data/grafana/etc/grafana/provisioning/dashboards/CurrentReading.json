@@ -202,7 +202,7 @@
               },
               {
                 "color": "yellow",
-                "value": 20
+                "value": 10
               },
               {
                 "color": "green",
@@ -511,7 +511,7 @@
           }
         }
       ],
-      "title": "Device Status",
+      "title": "Device Status - API v${version}",
       "type": "table"
     },
     {
@@ -651,7 +651,48 @@
     "Production"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "text": "foo",
+          "value": "foo"
+        },
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "fdc6fe8a-5b8d-4152-b292-2265ab2a775c"
+        },
+        "definition": "",
+        "hide": 2,
+        "name": "version",
+        "options": [],
+        "query": {
+          "infinityQuery": {
+            "columns": [],
+            "data": "values\nfoo\nbar\nbaz",
+            "filters": [],
+            "format": "table",
+            "parser": "backend",
+            "refId": "",
+            "root_selector": "",
+            "source": "url",
+            "type": "json",
+            "url": "http://fronius2influx:5000/query/app_version",
+            "url_options": {
+              "data": "",
+              "method": "GET"
+            }
+          },
+          "meta": {
+            "valueField": "Version"
+          },
+          "queryType": "infinity",
+          "refId": "variable"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-1m",
@@ -661,5 +702,5 @@
   "timezone": "",
   "title": "Current Reading",
   "uid": "c0b6cd3b-1283-4719-8ba2-79d357d80228",
-  "version": 29
+  "version": 33
 }

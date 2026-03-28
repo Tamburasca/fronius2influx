@@ -1,9 +1,9 @@
 influxdb-client == 1.50.0
 websockets == 16.0
 astral == 3.2
-requests == 2.32.5
+requests == 2.33.0
 pytz == 2025.2
 websocket-client == 1.9.0
 cryptography == 46.0.5
-uvicorn == 0.41.0
-fastapi == 0.135.1
+uvicorn == 0.42.0
+fastapi == 0.135.2

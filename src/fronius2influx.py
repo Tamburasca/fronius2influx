@@ -8,11 +8,11 @@ from enum import Enum
 from time import sleep
 from timeit import default_timer
 
+import requests
 from astral import LocationInfo
 from astral.sun import elevation, azimuth
 from influxdb_client import InfluxDBClient, WriteOptions
 from influxdb_client.client.write_api import SYNCHRONOUS, WritePrecision
-from requests import get
 from requests.exceptions import ConnectionError, HTTPError
 
 # internal imports
@@ -61,6 +61,7 @@ class FroniusEndpoints(
         parameter['server']['application']
     ) for member in FroniusEndpoints]
     """
+
     INVERTER_REAL_TIME_DATA = "GetInverterRealtimeData.cgi?Scope=Device&DataCollection=CommonInverterData&DeviceId=1"
     STORAGE_REAL_TIME_DATA = "GetStorageRealtimeData.cgi?Scope=Device&DeviceId=0"
     METER_REAL_TIME_DATA = "GetMeterRealtimeData.cgi?Scope=Device&DeviceId=0"
@@ -75,7 +76,6 @@ class FroniusEndpoints(
 class FroniusToInflux(object):
     RETRY_PERIOD: int = 60  # seconds
     BACKOFF_INTERVAL = 5  # GET request every BACKOFF_INTERVAL seconds
-    WRITE_CYCLE = 12  # write every WRITE_CYCLE th cycle (= every 60s, where BACKOFF_INTERVAL = 5s)
 
     def __init__(
             self,
@@ -85,7 +85,18 @@ class FroniusToInflux(object):
             endpoints: _Meta,
             wallbox: Wattpilot | None,
             **kwargs
-    ):
+    ) -> None:
+        """
+        initiate variables
+        :param client: influxDB client
+        :param parameter: parameter as read from parameter.json
+        :param endpoints: endpoints to read from inverter
+        :param wallbox: wallbox to read from
+        :param kwargs: (optional)
+            dry_run: if true no data is written to influxDB (default: false)
+            write_cycle: write interval for influxDB in seconds (default: 60)
+        """
+
         self.client = client
         self.endpoints = endpoints
         self.parameter = parameter
@@ -100,11 +111,21 @@ class FroniusToInflux(object):
         self.data: dict = dict()
         self.ignore_sun_down: bool = False
         self.dry_run: bool = kwargs.get('dry_run', False)
+        # write cycle no in multiples of BACKOFF_INTERVAL
+        self.write_cycle_no: int = int(
+            kwargs.get('write_cycle', 60) / self.BACKOFF_INTERVAL
+        )
 
     def get_float_or_zero(
             self,
             value: str
     ) -> float:
+        """
+        Get value of parameter value: either float or zero
+        :param value:
+        :return:
+        """
+
         try:
             internal_data: dict[str, dict] = self.data['Body']['Data']
         except KeyError:
@@ -115,6 +136,12 @@ class FroniusToInflux(object):
             else float(internal_data.get(value)['Value'])
 
     def translate_response(self) -> list[dict[str, str | dict]]:
+        """
+        prepare data for writing to influxDB with fields each measurement
+        at timestamp
+        :return:
+        """
+
         collection = self.data['Head']['RequestArguments'].get('DataCollection')
         timestamp = self.data['Head']['Timestamp']  # timestamp from response
         status = self.data['Head']['Status']
@@ -248,6 +275,12 @@ class FroniusToInflux(object):
             raise DataCollectionError("Unknown data collection type.")
 
     def sun_parameter(self) -> list[dict[str, str | dict]]:
+        """
+        prepare sun energy parameters at current time and write
+        to measurement SolarData
+        :return:
+        """
+
         result: dict[str, dict | float]
         el = elevation(observer=self.location.observer,
                        with_refraction=True)
@@ -308,8 +341,14 @@ class FroniusToInflux(object):
                 return []
 
     def run(self) -> None:
-        collected_data: list[dict[str, str | dict]] = list()
-        websocket_data: list[dict[str, str | dict]] = list()
+        """
+        runs eternally, collects data and writes it to InfluxDB
+        :return:
+        """
+
+        collected_data: list[dict[str, str | dict]] = []
+        websocket_data: list[dict[str, str | dict]] = []
+        content_tmp: list = []
         wallbox_status_fields_previous: dict = {'Wallbox connected': False}
         flag_sun_is_down: bool = False
         flag_connection: bool = False
@@ -329,9 +368,14 @@ class FroniusToInflux(object):
         try:
             while True:
                 try:
+                    # get endpoints, time between each get request is ~20ms
+                    content_tmp.clear()  # clearing a small list is 7% faster!
                     for url in self.endpoints:
-                        content = get(url)
+                        content = requests.get(url)
                         content.raise_for_status()  # HTTP status
+                        content_tmp.append(content)
+
+                    for content in content_tmp:
                         self.data = content.json()
                         fronius_data = self.translate_response()
                         # append data
@@ -356,8 +400,7 @@ class FroniusToInflux(object):
                             collected_data.extend(wallbox_status)
                             wallbox_status_fields_previous = wallbox_status[0]['fields']
 
-                    # 125 - 250 ms for querying all Rest APIs & Websockets
-                    if counter >= self.WRITE_CYCLE:
+                    if counter >= self.write_cycle_no:  # no of cycles to skip
                         if logging.DEBUG >= logging.root.level:
                             print(collected_data)
                         if not self.dry_run:
@@ -417,7 +460,7 @@ class FroniusToInflux(object):
                     sleep(self.RETRY_PERIOD)
 
         except KeyboardInterrupt:
-            print("Finishing. Goodbye!")
+            print("Exiting. Goodbye! See you next time!")
             sys.exit(os.EX_OK)
 
         except (Exception,) as e:  # any other error, tbd.
@@ -426,6 +469,11 @@ class FroniusToInflux(object):
 
 
 def main() -> None:
+    """
+    Read parameter file, define influxDB & connect wallbox and call application
+    :return:
+    """
+
     wallbox = None
 
     parameter_file = "{}/data/parameter.json".format(

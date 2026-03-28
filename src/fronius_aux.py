@@ -65,7 +65,7 @@ class StatusCode(str, Enum):  # ToDo: needed?
     C = "Standby", 8
     D = "Bootloading", 9
     E = "Error", 10
-    F = "idle", 11
+    F = "Idle", 11
     G = "Ready", 12
     H = "Sleeping", 13
     I = "Unknown", 255
@@ -122,10 +122,12 @@ def air_mass(
     air mass attenuation factor,
     air mass
     """
+
     a = 0.00014 * altitude  # altitude correction factor
     air_mass_revised = 1. / (
             Math.cosdeg(90. - elevation) + 0.50572 * (6.07995 + elevation) ** -1.6364
     )
+
     return (
         (1. - a) * 0.7 ** (air_mass_revised ** 0.678) + a,
         air_mass_revised
@@ -148,6 +150,7 @@ def direct_radiation_on_tilted_surface(
     :param orientation: panel orientation in degrees
     :return: 
     """
+
     return max(
         Math.cosdeg(elevation)
         * Math.sindeg(inclination)
@@ -168,6 +171,7 @@ def flatten_json(y: dict) -> dict[str, Any]:
     :param y: semi-structured JSON object
     :return: flattened JSON object
     """
+
     out: dict[str, Any] = dict()
 
     def flatten(x, name='') -> None:
@@ -197,6 +201,7 @@ def get_secret(
     :param default: default PW
     :return: PW
     """
+
     value = os.getenv(key, default)
     if os.path.isfile(value):
         with open(value) as f:
@@ -217,6 +222,7 @@ def pw(
     :return:
         str: decoded application key
     """
+
     if cipher is None:
         raise Exception("Please set the environment variable MOSQUITTO_CIPHER")
     return Fernet(str.encode(cipher)).decrypt(str.encode(pw_encoded)).decode()

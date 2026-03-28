@@ -5,7 +5,7 @@ FROM python:3.14-slim
 WORKDIR /Fronius/
 
 # copy the content of the local src directory to the working directory
-COPY src/fronius2influx.py src/fronius_*.py src/
+COPY src/fronius2influx.py src/fronius_*.py src/__init__.py src/
 COPY src/wattpilot*.py src/
 COPY src/data/parameter.json src/data/
 COPY src/requirements.txt src/
@@ -13,8 +13,9 @@ COPY src/requirements.txt src/
 # Fronius RestAPI
 COPY src/HTTPrequest_v2.py src/
 
-COPY src/wrapper.sh src/
-RUN chmod +x src/wrapper.sh
+# does not work with docker-compose!
+COPY --chmod=+x src/wrapper.sh src/
+# RUN chmod +x src/wrapper.sh
 
 # install dependencies
 RUN pip install --upgrade pip && \

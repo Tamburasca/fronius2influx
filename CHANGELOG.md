@@ -6,6 +6,15 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.8.1 (2026-03-28)
+### Added
+- new endpoint in HTTPrequest_v2.py to provide the app version
+### Changed
+- Time between GET Fronius endpoints shortened
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.8.0 (2026-03-07)
 ### Added
 ### Changed

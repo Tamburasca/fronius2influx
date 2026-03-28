@@ -73,6 +73,7 @@
     "gfs_forecast": [
         {"shortName": ["dswrf"], "typeOfLevel": "surface", "validity": "hour fcst"}
     ],
+    "write_cycle": 60,
     "ignore_sun_down": true,
     "debug": false,
     "dry_run": false

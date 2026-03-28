@@ -27,6 +27,7 @@ class SunInflux(object):
         :param parameter:
         :param debug:
         """
+
         self.parameter = parameter
         self.location = LocationInfo(
             name=parameter['location']['city'],
@@ -50,6 +51,8 @@ class SunInflux(object):
         :param dateandtime:
         :return: solar data
         """
+
+        # initiate all solar parameters
         result = {
             dateandtime: {
                 "sun": {
@@ -115,6 +118,7 @@ class SunInflux(object):
         between from_date and to_date
         :return: iterable
         """
+
         to_date = to_date if to_date else from_date + timedelta(hours=1)
         diff = (to_date - from_date).total_seconds() / 60
         assert diff % t_delta == 0, "Unequal intervals between from and to!"
@@ -133,6 +137,7 @@ class SunInflux(object):
         :param t_delta: intervals in minutes
         :return: energy Wh
         """
+
         return (t_delta / 60 *
                 sum([(p[i] + p[i + 1]) / 2 for i in range(len(p) - 1)]))
 
@@ -153,6 +158,7 @@ class SunInflux(object):
         * diffuse sunlight on the (tilted) PV panels in units of hm²
         in the period from_date until to_date, to be multiplied by Wm⁻²
         """
+
         powers = list()
         panels = list()
         diffuse = list()
