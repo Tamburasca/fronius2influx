@@ -4,6 +4,6 @@ influxdb-client == 1.50.0
 scipy == 1.17.1
 numpy == 2.4.3
 astral == 3.2
-cryptography == 46.0.5
+cryptography == 46.0.6
 bs4 == 0.0.2
 requests == 2.33.0
