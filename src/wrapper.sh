@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# start fastAPI at port=5000
+# start Rest API
 python3 -u src/HTTPrequest_v2.py &
 sleep 6
 # start fronius2influx.py

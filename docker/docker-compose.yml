@@ -82,6 +82,7 @@ services:
       INFLUXDB_HOST: *database-container-name
     env_file:
       - fronius2influx.env
+      - cipher.env
     # Test: Fronius endpoints
     ports:
       - "5001:5000"
@@ -113,6 +114,7 @@ services:
       INFLUXDB_HOST: *database-container-name
     env_file:
       - fronius2influx.env
+      - cipher.env
 
 secrets:
     influxdb_init_password:

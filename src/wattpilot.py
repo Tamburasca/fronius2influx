@@ -563,7 +563,7 @@ class Wattpilot(object):
         #  __error_issued = False on successful reconnect
         logging.getLogger("websocket").disabled = True
         if not self.__error_issued:
-            logging.error(f"Error received from WebSocketApp: {err}.")
+            logging.error(f"Error received from Wallbox WebSocketApp: {err}.")
             if self._auto_reconnect:
                 logging.info(f"Retrying in {self._reconnect_interval} seconds ...")
             self.__error_issued = True

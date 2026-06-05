@@ -8,6 +8,7 @@ import json
 import logging
 import os
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 import uvicorn
 from fastapi import FastAPI, status, WebSocket, WebSocketDisconnect
@@ -32,7 +33,7 @@ logging.basicConfig(format=MYFORMAT,
 
 
 class PostProcess:
-    def __init__(self):
+    def __init__(self) -> None:
         self._message = list()
         self._battery = dict()
         self._wallbox = dict()
@@ -40,7 +41,9 @@ class PostProcess:
         self._inverter = dict()
         self._devicestatus = dict()
 
-    def __assign(self):
+    def __assign(self) -> None:
+        for v in self.__dict__.values():  # reset all dict
+            if isinstance(v, dict): v.clear()
         for i in self._message:
             match i.get('measurement'):
                 case "Battery":
@@ -60,8 +63,6 @@ class PostProcess:
 
     @message.setter
     def message(self, item):
-        for k, v in self.__dict__.items():
-            if isinstance(v, dict): super().__setattr__(k, dict())
         self._message = json.loads(item)
         self.__assign()
 
@@ -91,7 +92,7 @@ class ConnectionManager:
     Supposedly we will have one ws connection solely
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.active_connection: bool = False
 
     async def connect(
@@ -125,7 +126,7 @@ class ASGIMiddleware:
     def __init__(
             self,
             app_c: ASGIApp
-    ):
+    ) -> None:
         self.app = app_c
 
     async def __call__(
@@ -135,7 +136,7 @@ class ASGIMiddleware:
             send: Send
     ) -> None:
         if scope["type"] == "websocket":
-            # possible code to perform on a ws call
+            # possible code to perform on a ws call, not utilized to date
             # print(scope, receive, send)
             await self.app(scope, receive, send)
         else:
@@ -143,7 +144,7 @@ class ASGIMiddleware:
 
 
 @asynccontextmanager
-async def lifespan(app_c: FastAPI):
+async def lifespan(app_c: FastAPI) -> AsyncGenerator[None, None]:
     # on start
     logging.info("Waiting for client to connect.")
     yield
@@ -169,7 +170,7 @@ app = FastAPI(title="Fronius Inverter Direct Readout",
 
 
 @app.websocket(parameter['RestAPI']['websocket'])  # websocket endpoint
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket) -> None:
     await manager.connect(websocket)
     try:
         while True:
@@ -180,11 +181,11 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
-@app.get("/retrieve",
+@app.get("/query/debug",
          name="Debugging entire content",
          tags=["debugging"]
          )
-async def retrieve():
+async def debug() -> JSONResponse:
     return JSONResponse(
         content=pp.message,
         status_code=status.HTTP_200_OK)
@@ -284,7 +285,7 @@ async def query_wallbox_status() -> JSONResponse:
                 "Car connected": pp.wallbox['Car connected'],
                 "Charge status": pp.wallbox['Charge status'],
                 "Wallbox mode": pp.wallbox['Wallbox mode'],
-                "Wallbox power (Ampere)": pp.wallbox['Wallbox power (Ampere)']
+                "Wallbox current": pp.wallbox['Wallbox current']
             }
         except KeyError:
             return JSONResponse(
@@ -297,7 +298,7 @@ async def query_wallbox_status() -> JSONResponse:
 
 
 @app.get("/query/wallbox_power",
-         name="Wallbox readings",
+         name="Wallbox power readings",
          tags=["wallbox"])
 async def query_wallbox_power() -> JSONResponse:
     result: dict[str, float] = dict()
@@ -334,7 +335,7 @@ async def query_version() -> JSONResponse:
         status_code=status.HTTP_200_OK)
 
 
-def main():
+def main() -> None:
     config = {
         "host": "0.0.0.0",
         "port": parameter['RestAPI']['port'],  # same port for ws and http Rest API

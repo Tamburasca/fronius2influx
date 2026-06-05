@@ -16,7 +16,7 @@ def wattpilot_get(
     :return:
     """
 
-    result = list()
+    result: list = []
     if wallbox:
         if wallbox.connected:
             result = [
@@ -45,16 +45,16 @@ def wattpilot_status(
     :param wallbox:
     :return:
     """
-    fields = {"Wallbox connected": False}
+
+    fields: dict = {"Wallbox connected": False}
     if wallbox:
         if wallbox.connected:
-            # print(wallbox.__dict__)
             fields = {
                 "Wallbox connected": True,
                 "Car connected": wallbox.carConnected,
                 "Charge status": wallbox.AllowCharging,
                 "Wallbox mode": wallbox.mode,
-                "Wallbox power (Ampere)": wallbox.amp
+                "Wallbox current": wallbox.amp
             }
     result = [
         {

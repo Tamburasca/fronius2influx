@@ -44,7 +44,7 @@ class StatusErrors(Enum):
     Sleeping = 1175
 
 
-class StatusBattery(Enum):  # ToDo replace float through string in influxDB?
+class StatusBattery(Enum):
     STANDBY = 0
     INACTIVE = 1
     DARKSTART = 2
@@ -53,7 +53,7 @@ class StatusBattery(Enum):  # ToDo replace float through string in influxDB?
     UPDATING = 5
 
 
-class StatusCode(str, Enum):  # ToDo: needed?
+class StatusCode(str, Enum):  # For reference, included in the Inverter results
     A0 = "Startup", 0
     A1 = "Startup", 1
     A2 = "Startup", 2

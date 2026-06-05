@@ -1,8 +1,10 @@
 # Changelog
-## x.x.x (xxxx-xx-xx)
+## 1.8.2 (2026-06-05)
 ### Added
 ### Changed
+- Cipher moved to cipher.env (not to be pushed to github)
 ### Fixed
+- Other fixes
 ### Deprecated
 ### Removed
 ### Security

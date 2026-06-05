@@ -511,7 +511,7 @@
           }
         }
       ],
-      "title": "Device Status - API v${version}",
+      "title": "Device Status",
       "type": "table"
     },
     {
@@ -653,16 +653,17 @@
   "templating": {
     "list": [
       {
+        "allowCustomValue": false,
         "current": {
-          "text": "foo",
-          "value": "foo"
+          "text": "1.8.1",
+          "value": "1.8.1"
         },
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
           "uid": "fdc6fe8a-5b8d-4152-b292-2265ab2a775c"
         },
         "definition": "",
-        "hide": 2,
+        "label": "API version",
         "name": "version",
         "options": [],
         "query": {
@@ -702,5 +703,5 @@
   "timezone": "",
   "title": "Current Reading",
   "uid": "c0b6cd3b-1283-4719-8ba2-79d357d80228",
-  "version": 33
+  "version": 35
 }

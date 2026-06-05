@@ -1,9 +1,9 @@
-ecmwf-opendata == 0.3.26
+ecmwf-opendata == 0.3.29
 pygrib == 2.1.8
 influxdb-client == 1.50.0
 scipy == 1.17.1
-numpy == 2.4.3
+numpy == 2.4.6
 astral == 3.2
-cryptography == 46.0.5
+cryptography == 48.0.0
 bs4 == 0.0.2
-requests == 2.33.0
+requests == 2.34.2

@@ -349,7 +349,7 @@ class FroniusToInflux(object):
         collected_data: list[dict[str, str | dict]] = []
         websocket_data: list[dict[str, str | dict]] = []
         content_tmp: list = []
-        wallbox_status_fields_previous: dict = {'Wallbox connected': False}
+        wallbox_status_fields_previous: dict = {'Wallbox connected': True}
         flag_sun_is_down: bool = False
         flag_connection: bool = False
         flag_exception: bool = False
@@ -392,10 +392,10 @@ class FroniusToInflux(object):
                         collected_data.extend(wallbox_data)
                         websocket_data.extend(wallbox_data)  # transfer via ws
 
-                        # Wallbox status only if status fields changed
                         wallbox_status = wattpilot_status(wallbox=self.wallbox)
                         # append data
                         websocket_data.extend(wallbox_status)  # transfer via ws
+                        # Wallbox status to influxDB if status fields changed
                         if wallbox_status[0]['fields'] != wallbox_status_fields_previous:
                             collected_data.extend(wallbox_status)
                             wallbox_status_fields_previous = wallbox_status[0]['fields']

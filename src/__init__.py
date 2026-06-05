@@ -27,7 +27,7 @@ __copyright__ = ("Copyright (c) 2023-2026, Ralf A. Timmermann "
                  "All rights reserved.")
 __credits__ = ""
 __license__ = "BSD-3-Clause"
-__version__ = "1.8.1"
+__version__ = "1.8.2"
 __maintainer__ = "Ralf A. Timmermann"
 __email__ = "ralf.timmermann@gmx.de"
 __status__ = "Prod"

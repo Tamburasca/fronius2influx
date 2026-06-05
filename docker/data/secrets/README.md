@@ -9,6 +9,6 @@ The following files are required in this folder:
     wattpilot_token - Wattpilot token
 
 Each file must only contain a single line with the password/token, 
-with no additional linefeeds. Remove a successive linefeed from the token by:
+with no additional line feeds. Remove a successive linefeed from the token by:
 
     echo -e "token" | tr -d '\n' > filename
