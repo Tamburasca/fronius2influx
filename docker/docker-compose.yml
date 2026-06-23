@@ -38,7 +38,6 @@ services:
         mode: "non-blocking"
     image: "grafana/grafana"
     container_name: grafana_fronius
-    # ToDo test plugin installation
     environment:
       - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
     networks:
