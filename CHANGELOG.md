@@ -1,8 +1,24 @@
 # Changelog
+## x.x.x (xxxx-xx-xx)
+### Added
+### Changed
+### Fixed
+### Deprecated
+### Removed
+### Security
+## 1.9.0 (2026-06-23)
+### Added
+- Home Connect: start program if battery charging level exceeds threshold 
+achieved via OpenAPI. (for testing, may be relocated at a later time)
+### Changed
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.8.2 (2026-06-05)
 ### Added
 ### Changed
-- Cipher moved to cipher.env (not to be pushed to github)
+- Cipher moved to cipher.env (not available in github)
 ### Fixed
 - Other fixes
 ### Deprecated

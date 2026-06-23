@@ -86,6 +86,9 @@ services:
     # Test: Fronius endpoints
     ports:
       - "5001:5000"
+    # HomeConnect  # ToDo
+    volumes:
+      - ../hcpy/data:/Fronius/hcpy/data
 
 ################################################################################
 # ECMWF weather forecast testing cron in slim-python

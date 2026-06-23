@@ -91,7 +91,18 @@ For other cases, adjust the FLUX statements (in Grafana) appropriately, i.e.
 the setup is not generic.
 
 # Advisory 
-Currently - on a Raspberry PI 4 - influxDB is writing to an SD card. Its write
+Currently - on a Raspberry PI 4 - influxDB is writing to a SD card. Its write
 cycles may be limited. The number of writes per time interval is reduced by
 increasing the WRITE_CYCLE > 1, e.g. to 12, such that data is cached and written
 to the SD card at 1 min<sup>-1</sup>.
+
+# Home Connect (temporary)
+A dishwasher can be started - with different programs - if the battery charging 
+level has exceeded a specific threshold.
+    
+    http://raspfronius:5001/HomeConnect/start or
+    http://raspfronius:5001/docs (openapi)
+
+The access token needs to be defined beforehand through:
+
+    docker compose exec fronius2influx python hcpy/hc_login_start.py --client_id <client_id> --client_secret <client_secret>

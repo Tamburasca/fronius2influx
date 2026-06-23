@@ -9,6 +9,8 @@ COPY src/fronius2influx.py src/fronius_*.py src/__init__.py src/
 COPY src/wattpilot*.py src/
 COPY src/data/parameter.json src/data/
 COPY src/requirements.txt src/
+# HomeConnect  # ToDo
+COPY hcpy/*.py hcpy/
 
 # Fronius RestAPI
 COPY src/HTTPrequest_v2.py src/
