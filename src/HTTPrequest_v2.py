@@ -95,8 +95,6 @@ class PostProcess:
                 case "DeviceStatus":
                     self._device_status = i['fields']
 
-        self.__start_dishwasher()
-
     def __start_dishwasher(self) -> None:
         """
 
@@ -108,7 +106,7 @@ class PostProcess:
                 headers = {
                     "Authorization": "Bearer " + secrets['data']['access_token'],
                     "accept": "application/vnd.bsh.sdk.v1+json",
-                    "Accept-Language": "de-DE",
+                    "Accept-Language": "en-US",
                     "Content-Type": "application/vnd.bsh.sdk.v1+json"
                 }
                 payload = {
@@ -146,6 +144,7 @@ class PostProcess:
     def message(self, item):
         self._message = json.loads(item)
         self.__assign()
+        self.__start_dishwasher()
 
     @property
     def battery(self):
@@ -454,7 +453,7 @@ def start_dishwasher(
                 description="Battery loading level (%) beyond to start Dishwasher",
                 ge=25,
                 le=100)
-        ] = 99
+        ] = 99  # default
 ) -> PlainTextResponse:
     """
     Start Dishwasher.
