@@ -20,7 +20,7 @@ from Crypto.Random import get_random_bytes
 
 # internal imports
 from hc_aux import (read_secrets, write_secrets, output_file, refresh_file,
-                    base_url, token_url, asset_url)
+                    base_url, token_url, asset_url, headers)
 
 # scopes used by the Home Connect app
 scope = [
@@ -121,14 +121,9 @@ def get_haid(
     :param secrets:
     :return:
     """
-    headers = {
-        "Authorization": "Bearer " + secrets['data']['access_token'],
-        "accept": "application/vnd.bsh.sdk.v1+json",
-        "Accept-Language": "en-US"
-    }
     r = requests.get(
         asset_url,
-        headers=headers
+        headers=headers(access_token=secrets['data']['access_token'])
     )
     if r.status_code != requests.codes.ok:
         print("Bad access token?", file=sys.stderr)
@@ -158,17 +153,12 @@ def get_programs(
     en: dict = {}
     app_id = secrets['Dishwasher']['haId']
 
-    headers = {
-        "Authorization": "Bearer " + secrets['data']['access_token'],
-        "accept": "application/vnd.bsh.sdk.v1+json",
-        "Accept-Language": "en-US"
-    }
-
     # see here for an overview
     # https://github.com/jeroenvdwaal/home-connect-api
     r = requests.get(
         asset_url + "/" + app_id + "/programs",
-        headers=headers)
+        headers=headers(access_token=secrets['data']['access_token'])
+    )
     if r.status_code != requests.codes.ok:
         print("Bad access token or haId?", file=sys.stderr)
         print(dict(r.headers), r.text)

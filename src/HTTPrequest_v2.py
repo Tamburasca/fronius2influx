@@ -22,7 +22,7 @@ from starlette.middleware import Middleware
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 # internal
-from hcpy.hc_aux import read_secrets, asset_url, ProgramsEnum
+from hcpy.hc_aux import read_secrets, asset_url, headers, ProgramsEnum
 from src.__init__ import __version__
 from src.fronius_aux import (
     StatusDevice,
@@ -103,12 +103,6 @@ class PostProcess:
         if hc.active:
             if self._battery['StateOfCharge_Relative'] >= hc.percentage:
                 secrets = read_secrets()
-                headers = {
-                    "Authorization": "Bearer " + secrets['data']['access_token'],
-                    "accept": "application/vnd.bsh.sdk.v1+json",
-                    "Accept-Language": "en-US",
-                    "Content-Type": "application/vnd.bsh.sdk.v1+json"
-                }
                 payload = {
                     "data": {
                         "key": hc.program
@@ -116,7 +110,7 @@ class PostProcess:
                 }
                 r = requests.put(
                     asset_url + "/" + secrets['Dishwasher']['haId'] + "/programs/active",
-                    headers=headers,
+                    headers=headers(secrets['data']['access_token']),
                     json=payload
                 )
                 if r.status_code != requests.codes.no_content:

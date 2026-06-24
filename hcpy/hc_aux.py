@@ -38,11 +38,11 @@ def write_secrets(secrets: dict) -> None:
             indent=4)
 
 
-def headers(token) -> dict:
+def headers(access_token) -> dict:
     return {
-        "Authorization": "Bearer " + token,
+        "Authorization": "Bearer " + access_token,
         "accept": "application/vnd.bsh.sdk.v1+json",
-        "Accept-Language": "en-US",
+        "Accept-Language": "de-DE",  # "en-US"
         "Content-Type": "application/vnd.bsh.sdk.v1+json"
     }
 
