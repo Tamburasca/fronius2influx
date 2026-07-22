@@ -23,7 +23,7 @@ from hc_aux import (read_secrets, write_secrets, output_file, refresh_file,
                     base_url, token_url, asset_url, headers)
 
 # scopes used by the Home Connect app
-scope = [
+scope: list = [
     "Dishwasher",
     "IdentifyAppliance",
     "Settings"
@@ -123,7 +123,8 @@ def get_haid(
     """
     r = requests.get(
         asset_url,
-        headers=headers(access_token=secrets['data']['access_token'])
+        headers=headers(
+            access_token=secrets['data']['access_token'])
     )
     if r.status_code != requests.codes.ok:
         print("Bad access token?", file=sys.stderr)
@@ -133,11 +134,11 @@ def get_haid(
 
     devices = json.loads(r.text)['data']['homeappliances']
     for item in devices:
-        if (item.get("type") == "Dishwasher"
+        if (item.get("type") == "dishwasher"
                 and item.get("brand") == "Bosch"):
             secrets['timestamp'] = datetime.datetime.now().isoformat()
-            secrets['Dishwasher'] = {}
-            secrets['Dishwasher']['haId'] = item.get("haId")
+            secrets['dishwasher'] = {}
+            secrets['dishwasher']['haId'] = item.get("haId")
 
     return secrets
 
@@ -150,14 +151,15 @@ def get_programs(
     :param secrets:
     :return:
     """
-    en: dict = {}
-    app_id = secrets['Dishwasher']['haId']
+    program: dict = {}
+    app_id = secrets['dishwasher']['haId']
 
     # see here for an overview
     # https://github.com/jeroenvdwaal/home-connect-api
     r = requests.get(
         asset_url + "/" + app_id + "/programs",
-        headers=headers(access_token=secrets['data']['access_token'])
+        headers=headers(
+            access_token=secrets['data']['access_token'])
     )
     if r.status_code != requests.codes.ok:
         print("Bad access token or haId?", file=sys.stderr)
@@ -167,9 +169,9 @@ def get_programs(
 
     programs_available = json.loads(r.text)['data']['programs']
     for items in programs_available:
-        en[items['key']] = items['name']
+        program[items['key']] = items['name']
     secrets['timestamp'] = datetime.datetime.now().isoformat()
-    secrets['Dishwasher']['programs'] = en
+    secrets['dishwasher']['programs'] = program
 
     return secrets
 

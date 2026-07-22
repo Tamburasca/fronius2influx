@@ -38,7 +38,7 @@ def write_secrets(secrets: dict) -> None:
             indent=4)
 
 
-def headers(access_token) -> dict:
+def headers(access_token: str) -> dict:
     return {
         "Authorization": "Bearer " + access_token,
         "accept": "application/vnd.bsh.sdk.v1+json",
@@ -49,5 +49,5 @@ def headers(access_token) -> dict:
 
 ProgramsEnum = Enum(
     "ProgramsEnum",
-    read_secrets().get('Dishwasher', {}).get('programs', {})
+    read_secrets().get('dishwasher', {}).get('programs', {})
 )

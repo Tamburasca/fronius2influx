@@ -16,9 +16,9 @@ def refresh_token(
 ) -> None:
     """
     refresh token
-    caveat: access token were refreshed too often (only 100 refreshes are allowed per day and 10 per minute)
-
-    :return: None
+    Note: only 100 refreshes are allowed per day and 10 per minute
+    :param t:
+    :return:
     """
     # fetch access token
     secrets = read_secrets()
@@ -40,22 +40,27 @@ def refresh_token(
         }
 
         # Refreshing an Access Token
-        r = requests.post(
-            token_url,
-            data=refresh_token_fields,
-            allow_redirects=False,
-            timeout=None,  # wait eternally
-        )
+        try:
+            r = requests.post(
+                token_url,
+                data=refresh_token_fields,
+                allow_redirects=False,
+                timeout=None,  # wait eternally
+            )
 
-        if r.status_code != requests.codes.ok:
-            secrets["failed"] = True
+            if r.status_code != requests.codes.ok:
+                secrets["failed"] = True
+                write_secrets(secrets)
+                print(r.text)
+                exit(1)
+
+            data["refresh_token"] = json.loads(r.text)["refresh_token"]
+            data["access_token"] = json.loads(r.text)["access_token"]
+            secrets["failed"] = False
             write_secrets(secrets)
-            exit(1)
 
-        data["refresh_token"] = json.loads(r.text)["refresh_token"]
-        data["access_token"] = json.loads(r.text)["access_token"]
-        secrets["failed"] = False
-        write_secrets(secrets)
+        except requests.exceptions.ConnectionError:  # retry
+            pass
 
 
 if __name__ == "__main__":

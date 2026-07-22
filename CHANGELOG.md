@@ -6,6 +6,14 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.9.1 (2026-07-22)
+### Added
+### Changed
+### Fixed
+- Error correction for refresh token
+### Deprecated
+### Removed
+### Security
 ## 1.9.0 (2026-06-23)
 ### Added
 - Home Connect: start program if battery charging level exceeds threshold 

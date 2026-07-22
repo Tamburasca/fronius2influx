@@ -109,8 +109,9 @@ class PostProcess:
                     }
                 }
                 r = requests.put(
-                    asset_url + "/" + secrets['Dishwasher']['haId'] + "/programs/active",
-                    headers=headers(secrets['data']['access_token']),
+                    asset_url + "/" + secrets['dishwasher']['haId'] + "/programs/active",
+                    headers=headers(
+                        secrets['data']['access_token']),
                     json=payload
                 )
                 if r.status_code != requests.codes.no_content:
@@ -431,10 +432,11 @@ async def query_version() -> JSONResponse:
         status_code=status.HTTP_200_OK)
 
 
-@app.put("/HomeConnect/start",
+@app.put("/homeconnect/dishwasher/start",
          summary="Start Dishwasher",
-         description="Start the Dishwasher if battery loading level is exceeded.",
-         tags=["HomeConnect"]
+         description="Start the dishwasher if specified battery loading "
+                     "level is exceeded.",
+         tags=["homeconnect"]
          )
 def start_dishwasher(
         program_id: Annotated[
@@ -444,13 +446,13 @@ def start_dishwasher(
         battery_loading_level: Annotated[
             int,
             Query(
-                description="Battery loading level (%) beyond to start Dishwasher",
+                description="Battery loading level (%) beyond to start dishwasher",
                 ge=25,
                 le=100)
         ] = 99  # default
 ) -> PlainTextResponse:
     """
-    Start Dishwasher.
+    Start dishwasher.
     :param program_id:
     :param battery_loading_level:
     :return:
