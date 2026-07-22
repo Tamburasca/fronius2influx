@@ -1,6 +1,6 @@
 # Monitoring a Fronius PV Infrastructure
 
-Request monitoring data from a Fronius PV inverter's Rest API, foreward and 
+Request data from a Fronius PV inverter's Rest API for monitoring, forward and 
 store it in an InfluxDB for visualization in Grafana. Current application 
 collects the most fundamental Fronius inverter data serving for a basic setup. 
 If your installation is any different or more advanced, 
