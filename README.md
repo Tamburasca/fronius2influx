@@ -111,10 +111,11 @@ You will be requested to log on to
 
     https://singlekey-id.com/
 
-and to cut & paste the "code" (as shown in the web developer), upon which 
-a file "secrets.json" is created in hcpy/data, comprising all required tokens. 
+and to cut & paste the "code" (as shown in the browser's web developer), 
+upon which a file "secrets.json" is created in hcpy/data, comprising all 
+required tokens. 
 Subsequently, another process is spawned (permanently) that will refresh 
-the access token throughout the day. 
+the access token throughout the future. 
 
 In case the refresh token has been received (see timestamp in secret.json)
 within the last 24 hours, just provide:
