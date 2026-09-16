@@ -6,6 +6,15 @@
 ### Deprecated
 ### Removed
 ### Security
+## 1.9.2 (2026-09-16)
+### Added
+### Changed
+- Code beautified.
+- Requirements updated.
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.9.1 (2026-07-22)
 ### Added
 ### Changed

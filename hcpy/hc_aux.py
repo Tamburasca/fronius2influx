@@ -5,7 +5,9 @@ import os
 from enum import Enum
 from pathlib import Path
 
-working_dir = os.path.dirname(os.path.realpath(__file__))
+working_dir = os.path.dirname(
+    os.path.realpath(__file__)
+)
 output_file = working_dir + "/data/secrets.json"
 refresh_file = working_dir + "/hc_refresh_token.py"
 
@@ -24,9 +26,13 @@ def read_secrets() -> dict:
         return {}  # return empty dict if file not found
 
 
-def write_secrets(secrets: dict) -> None:
+def write_secrets(
+        secrets: dict
+) -> None:
     output = Path(output_file)
-    output.parent.mkdir(exist_ok=True, parents=True)  # create dir if not exists
+    output.parent.mkdir(
+        exist_ok=True,
+        parents=True)  # create dir if not exists
     with open(
             file=output,
             mode="w+") as f:
@@ -38,7 +44,9 @@ def write_secrets(secrets: dict) -> None:
             indent=4)
 
 
-def headers(access_token: str) -> dict:
+def headers(
+        access_token: str
+) -> dict:
     return {
         "Authorization": "Bearer " + access_token,
         "accept": "application/vnd.bsh.sdk.v1+json",

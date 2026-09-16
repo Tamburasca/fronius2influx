@@ -1,14 +1,14 @@
 # Monitoring a Fronius PV Infrastructure
 
 Request data from a Fronius PV inverter's Rest API for monitoring, forward and 
-store it in an InfluxDB for visualization in Grafana. Current application 
-collects the most fundamental Fronius inverter data serving for a basic setup. 
+store it in an InfluxDB for visualization via Grafana. Current application 
+collects the most fundamental Fronius inverter & Wallbox data serving for 
+a basic setup. 
 If your installation is any different or more advanced, 
 some extra work may be reqired, though.
 
 Energy forecasts, i.e. the "Surface short-wave (solar) radiation 
-downwards", are downloaded from the 
-European Centre for Medium-Range Weather Forecasts 
+downwards", are downloaded from the
 [ECMWF](https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS), in order to predict the (day-by-day) energy to be expected 
 by the present PV installation for the upcoming two weeks. 
 In parallel similar data is downloaded from the 

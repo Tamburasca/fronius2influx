@@ -23,7 +23,7 @@ def refresh_token(
     # fetch access token
     secrets = read_secrets()
     if not secrets:
-        logging.error("Error: no secrets available. Start 'hc_login_start.py' first!")
+        logging.error("No secrets available. Start 'hc_login_start.py' first!")
         exit(1)
 
     while True:
@@ -51,15 +51,16 @@ def refresh_token(
             if r.status_code != requests.codes.ok:
                 secrets["failed"] = True
                 write_secrets(secrets)
-                print(r.text)
+                logging.error(r.text)
                 exit(1)
 
-            data["refresh_token"] = json.loads(r.text)["refresh_token"]
+            data["refresh_token"] = json.loads(r.text)["refresh_token"]  # refresh token doesn't change?
             data["access_token"] = json.loads(r.text)["access_token"]
             secrets["failed"] = False
             write_secrets(secrets)
 
-        except requests.exceptions.ConnectionError:  # retry
+        except requests.exceptions.ConnectionError:  # retry next time, if no connection
+            logging.warning("No internet connection, retrying...")
             pass
 
 

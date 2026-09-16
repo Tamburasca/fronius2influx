@@ -1,11 +1,11 @@
 influxdb-client == 1.50.0
-websockets == 16.0
+websockets == 17.1
 astral == 3.2
 requests == 2.34.2
 pytz == 2026.2
-websocket-client == 1.9.0
-cryptography == 49.0.0
-uvicorn == 0.49.0
-fastapi == 0.138.0
+websocket-client == 1.9.2
+cryptography == 50.0.1
+uvicorn == 0.53.0
+fastapi == 0.141.1
 # HomeConnect
 pycryptodome == 3.23.0

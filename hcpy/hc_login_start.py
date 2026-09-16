@@ -30,11 +30,15 @@ scope: list = [
 ]
 
 
-def b64(b):
+def b64(
+        b: bytes
+) -> str:
     return re.sub(r"=", "", base64url_encode(b).decode("UTF-8"))
 
 
-def b64random(num):
+def b64random(
+        num: int
+) -> str:
     return b64(base64url_encode(get_random_bytes(num)))
 
 
