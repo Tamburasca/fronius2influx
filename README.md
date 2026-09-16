@@ -97,12 +97,11 @@ increasing the WRITE_CYCLE > 1, e.g. to 12, such that data is cached and written
 to the SD card at 1 min<sup>-1</sup>.
 
 # Home Connect (temporary)
-A dishwasher (via HomeConnect Rest API) can be started - with its different 
-programs - if the battery 
-charging level has exceeded a specified threshold.
+A dishwasher (via HomeConnect Rest API) can be started, with its different 
+programs, if the battery charging level has exceeded a specified threshold.
     
-    http://raspfronius:5001/HomeConnect/start or
-    http://raspfronius:5001/docs# (openapi)
+    http://<host>:5001/HomeConnect/start or
+    http://<host>:5001/docs# (openapi)
 
 The access token needs to be defined beforehand through:
 
@@ -112,12 +111,14 @@ You will be requested to log on to
 
     https://singlekey-id.com/
 
-and to cut & paste the "code" (see instructions), upon a file 
-"secrets.json" is created in hcpy/data, comprising all required parameters. 
-Subsequently, another process is spawned (permanently) that refreshes 
-the access token during the day. 
+and to cut & paste the "code" (as shown in the web developer), upon which 
+a file "secrets.json" is created in hcpy/data, comprising all required tokens. 
+Subsequently, another process is spawned (permanently) that will refresh 
+the access token throughout the day. 
 
-In case the refresh token has been received (see timestamp in secrest.json)
-with in the last 24 hours, just provide:
+In case the refresh token has been received (see timestamp in secret.json)
+within the last 24 hours, just provide:
 
     docker compose exec fronius2influx python hcpy/hc_login_start.py
+
+which launches just the "refresh token" task.
