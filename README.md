@@ -117,7 +117,7 @@ and to cut & paste the "code" (see instructions), upon a file
 Subsequently, another process is spawned (permanently) that refreshes 
 the access token during the day. 
 
-In case the refresh token has been received with in the last 24 hours, provide
-just (see timestamp in secrest.json):
+In case the refresh token has been received (see timestamp in secrest.json)
+with in the last 24 hours, just provide:
 
     docker compose exec fronius2influx python hcpy/hc_login_start.py
