@@ -36,7 +36,8 @@ services:
         max-size: "20m"
         max-file: "3"
         mode: "non-blocking"
-    image: "grafana/grafana"
+    # complies with infinity 4.0.0, need to upgrade to grafana:13.2.2 anyways
+    image: "grafana/grafana:11.6.11"
     container_name: grafana_fronius
     environment:
       - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
