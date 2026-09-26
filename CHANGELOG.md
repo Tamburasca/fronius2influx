@@ -2,6 +2,7 @@
 ## 1.10.0 (2026-09-26)
 ### Added
 - Status of Home Connect queue in HTTP Rest API
+- Home Connect queue to be purged
 ### Changed
 - fronius_ws_sync_client.py reformatted
 ### Fixed
