@@ -33,7 +33,7 @@ from src.fronius_ws_sync_client import WSSyncClient
 from src.wattpilot import Wattpilot
 from src.wattpilot_read import wattpilot_get, wattpilot_status
 
-MOSQUITTO_CIPHER = os.environ.get('MOSQUITTO_CIPHER')
+MOSQUITTO_CIPHER = os.environ.get('MOSQUITTO_CIPHER','')
 
 
 class WrongFroniusData(Exception): ...
@@ -133,7 +133,7 @@ class FroniusToInflux(object):
 
         return 0. if 'Value' not in internal_data.get(value, {}) \
                      or internal_data.get(value, {}).get('Value') is None \
-            else float(internal_data.get(value)['Value'])
+            else float(internal_data[value]['Value'])
 
     def translate_response(self) -> list[dict[str, str | dict]]:
         """
@@ -460,7 +460,7 @@ class FroniusToInflux(object):
                     sleep(self.RETRY_PERIOD)
 
         except KeyboardInterrupt:
-            print("Exiting. Goodbye! See you next time!")
+            print("Exiting. Goodbye. I'll be back!")
             sys.exit(os.EX_OK)
 
         except (Exception,) as e:  # any other error, tbd.
@@ -496,8 +496,7 @@ def main() -> None:
                                   parameter['influxdb']['port']))
     # default applies, if runs outside Docker
     influxdb_token_write = get_secret('INFLUXDB_TOKEN_FILE',
-                                      os.getenv('INFLUXDB_TOKEN'))
-
+                                      os.getenv('INFLUXDB_TOKEN', ''))
     client = InfluxDBClient(
         url="http://{0}:{1}".format(influxdb_host,
                                     influxdb_port),
@@ -513,7 +512,7 @@ def main() -> None:
 
     if parameter['wallbox']['active']:
         wallbox_token = get_secret('WALLBOX_TOKEN_FILE',
-                                   os.environ.get('WALLBOX_TOKEN'))
+                                   os.environ.get('WALLBOX_TOKEN', ''))
         wallbox = Wattpilot(
             ip=parameter['wallbox']['host'],
             password=pw(wallbox_token, MOSQUITTO_CIPHER),

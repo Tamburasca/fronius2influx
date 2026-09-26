@@ -1,8 +1,11 @@
 # Changelog
-## x.x.x (xxxx-xx-xx)
+## 1.10.0 (2026-09-26)
 ### Added
+- Status of Home Connect queue in HTTP Rest API
 ### Changed
+- fronius_ws_sync_client.py reformatted
 ### Fixed
+- hc_login_start.py: reading the program list for Dishwasher
 ### Deprecated
 ### Removed
 ### Security

@@ -1,6 +1,6 @@
 services:
 ################################################################################
-# Fronius database influxDB 2.7
+# Fronius time-series database influxDB 2.7
 ################################################################################
   influx_fronius:
     logging:
@@ -36,7 +36,7 @@ services:
         max-size: "20m"
         max-file: "3"
         mode: "non-blocking"
-    # complies with infinity 4.0.0, however not with 13+
+    # complies with infinity 4.0.0, however not with grafana:13.x
     image: "grafana/grafana:12.4.11"
     container_name: grafana_fronius
     environment:
@@ -57,7 +57,7 @@ services:
     entrypoint: ['bash', '-c', 'export INFLUXDB_TOKEN_READ=$$(cat /var/run/secrets/influxdb_token_read) ; source /run.sh']
 
 ################################################################################
-# Fronius Web Rest API Readout
+# Fronius Web Rest API
 ################################################################################
   fronius2influx:
     logging:
@@ -91,7 +91,7 @@ services:
       - ../hcpy/data:/Fronius/hcpy/data
 
 ################################################################################
-# ECMWF weather forecast testing cron in slim-python
+# ECMWF, GFS, and open-meteo weather forecast started via cron in slim-python
 ################################################################################
   forecast2influx:
     logging:

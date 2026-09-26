@@ -12,7 +12,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Annotated, AsyncGenerator
+from typing import Annotated, AsyncGenerator, Any
 
 import requests
 import uvicorn
@@ -51,7 +51,7 @@ class HC:
         self.processed: bool = False
         self.program: str = ""
         self.program_name: str = ""
-        self.percentage: int = 99
+        self.percentage: int = 101  # for n.a.
         self.code: int = status.HTTP_200_OK
         self.msg: str = "Request submitted. Battery level is yet to low."
 
@@ -130,6 +130,9 @@ class PostProcess:
 
                 hc.active = False
             hc.processed = True
+        else:  # reset values after submission of request
+            hc.program = ""
+            hc.percentage = 101
 
     @property
     def message(self):
@@ -227,7 +230,7 @@ async def lifespan(app_c: FastAPI) -> AsyncGenerator[None, None]:
     pass
 
 
-def relu(x: float) -> float: return max(0., x)
+def relu(x: float | int) -> float | int: return max(0., x)
 
 
 pp = PostProcess()
@@ -438,7 +441,7 @@ async def query_version() -> JSONResponse:
                      "level is exceeded.",
          tags=["homeconnect"]
          )
-def start_dishwasher(
+def start_dishwasher(  # async does not work! To be explored... websocket also needs to be async
         program_id: Annotated[
             ProgramsEnum,
             Query(description="Program ID")
@@ -447,7 +450,7 @@ def start_dishwasher(
             int,
             Query(
                 description="Battery loading level (%) beyond to start dishwasher",
-                ge=25,
+                ge=25,  # do not start under 25%
                 le=100)
         ] = 99  # default
 ) -> PlainTextResponse:
@@ -469,6 +472,42 @@ def start_dishwasher(
     return PlainTextResponse(
         content=hc.msg,
         status_code=hc.code)
+
+
+@app.get("/homeconnect/dishwasher/status",
+         summary="Status Dishwasher Queue",
+         description="Start of dishwasher is pending.",
+         tags=["homeconnect"]
+         )
+async def status_dishwasher() -> JSONResponse:
+    content: dict[str, Any] = {
+        "Start pending": hc.active
+    }
+    if hc.active:
+        content.update(
+            {
+                "Program": hc.program,
+                "Battery charging threshold": hc.percentage
+            }
+        )
+
+    return JSONResponse(  # for Grafana
+        content=content,
+        status_code=status.HTTP_200_OK
+    )
+
+
+@app.put("/homeconnect/dishwasher/stop",
+         summary="Empty Dishwasher Queue",
+         description="Stop the dishwasher",
+         tags=["homeconnect"]
+         )
+async def stop_dishwasher() -> PlainTextResponse:
+    hc.active = False
+    return PlainTextResponse(
+        content="Dishwasher queue emptied.",
+        status_code=status.HTTP_200_OK
+    )
 
 
 def main() -> None:

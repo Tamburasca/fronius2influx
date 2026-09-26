@@ -48,7 +48,7 @@ def login_page(
     """
 
     :param client_id:
-    :return:
+    :return: secrets
     """
     login_query = {
         "response_type": "code",
@@ -80,11 +80,11 @@ def access_token_request(
         code: str
 ) -> dict:
     """
-
+    Get the token from the developer's website
     :param client_id:
     :param client_secret:
     :param code:
-    :return:
+    :return: secrets
     """
     token_fields = {
         "grant_type": "authorization_code",
@@ -121,9 +121,9 @@ def get_haid(
         secrets: dict
 ) -> dict:
     """
-
+    Get the home appliance ID.
     :param secrets:
-    :return:
+    :return: secrets
     """
     r = requests.get(
         asset_url,
@@ -138,7 +138,7 @@ def get_haid(
 
     devices = json.loads(r.text)['data']['homeappliances']
     for item in devices:
-        if (item.get("type") == "dishwasher"
+        if (item.get("type") == "Dishwasher"  # caveat: capital letter "D"!!!
                 and item.get("brand") == "Bosch"):
             secrets['timestamp'] = datetime.datetime.now().isoformat()
             secrets['dishwasher'] = {}
@@ -151,9 +151,9 @@ def get_programs(
         secrets: dict
 ) -> dict:
     """
-
+    Get a list of available programs for a specific HA ID.
     :param secrets:
-    :return:
+    :return: secrets
     """
     program: dict = {}
     app_id = secrets['dishwasher']['haId']
@@ -182,8 +182,9 @@ def get_programs(
 
 def main() -> None:
     """
-    get access token and refresh token & appliance ID and available programs
-    :return:
+    Get access token and refresh token & appliance ID and available programs.
+    Thereafter, spawn the refresh process.
+    :return: None
     """
     argparser = argparse.ArgumentParser(
         description="HomeConnect Login Procedure")
