@@ -486,8 +486,8 @@ async def status_dishwasher() -> JSONResponse:
     if hc.active:
         content.update(
             {
-                "Program": hc.program,
-                "Battery charging threshold": hc.percentage
+                "Program": hc.program_name,
+                "Battery charging threshold [%]": hc.percentage
             }
         )
 
