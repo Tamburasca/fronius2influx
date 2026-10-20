@@ -226,3 +226,7 @@ def pw(
     if cipher is None:
         raise Exception("Please set the environment variable MOSQUITTO_CIPHER")
     return Fernet(str.encode(cipher)).decrypt(str.encode(pw_encoded)).decode()
+
+
+def defined_kwargs(**kwargs) -> dict:
+    return {k: v for k, v in kwargs.items() if v is not None}

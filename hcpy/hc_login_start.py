@@ -19,8 +19,8 @@ import requests
 from Crypto.Random import get_random_bytes
 
 # internal imports
-from hc_aux import (read_secrets, write_secrets, output_file, refresh_file,
-                    base_url, token_url, asset_url, headers)
+from hc_aux import (read_secrets, write_secrets, OUTPUT_FILE, REFRESH_FILE,
+                    BASE_URL, TOKEN_URL, ASSET_URL, headers)
 
 # scopes used by the Home Connect app
 scope: list = [
@@ -59,7 +59,7 @@ def login_page(
         "state": b64random(16),
     }
 
-    loginpage_url = base_url + "authorize?" + urlencode(login_query)
+    loginpage_url = BASE_URL + "authorize?" + urlencode(login_query)
 
     print(
         "Visit the following URL in Chrome/Firefox,\n "
@@ -94,7 +94,7 @@ def access_token_request(
     }
 
     r = requests.post(
-        token_url,
+        TOKEN_URL,
         data=token_fields,
         allow_redirects=False)
     if r.status_code != requests.codes.ok:
@@ -126,7 +126,7 @@ def get_haid(
     :return: secrets
     """
     r = requests.get(
-        asset_url,
+        url=ASSET_URL,
         headers=headers(
             access_token=secrets['data']['access_token'])
     )
@@ -156,12 +156,14 @@ def get_programs(
     :return: secrets
     """
     program: dict = {}
-    app_id = secrets['dishwasher']['haId']
 
     # see here for an overview
     # https://github.com/jeroenvdwaal/home-connect-api
     r = requests.get(
-        asset_url + "/" + app_id + "/programs",
+        url=ASSET_URL
+            + "/"
+            + secrets['dishwasher']['haId']
+            + "/programs",
         headers=headers(
             access_token=secrets['data']['access_token'])
     )
@@ -233,11 +235,11 @@ def main() -> None:
         get_programs(secrets=secrets))
 
     if os.getuid() == 0:  # chmod only if root
-        os.chmod(output_file, 0o666)  # docker owner is root, now anyone can edit/delete
+        os.chmod(OUTPUT_FILE, 0o666)  # docker owner is root, now anyone can edit/delete
 
     # spawn "refresh token" subprocess and exit
     process = subprocess.Popen(
-        ["python3", refresh_file],
+        ["python3", REFRESH_FILE],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         close_fds=True,

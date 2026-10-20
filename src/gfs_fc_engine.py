@@ -24,9 +24,8 @@ from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 # internal
-from fronius_aux import get_secret
 from gfs_fc_aux import (defined_kwargs, CONFIG, STEPS, DATA_FILE, DATA_DIR,
-                        MYFORMAT)
+                        MYFORMAT, get_secret)
 from gfs_fc_client import Client
 from gfs_fc_download import extract
 from sun_influx import SunInflux
@@ -71,6 +70,7 @@ def main(
     qs = list()  # list of queues
 
     dict_x = dict()
+
     def collect(r: dict) -> dict:
         for k, v in r.items():
             try:
@@ -79,11 +79,12 @@ def main(
             except KeyError:
                 dict_x[k] = v
         return dict_x
+
     # end module collect
 
     client = Client(
         # grid: mandatory [SLS|GLOB]
-        grid= "SLS",
+        grid="SLS",
         # only used with grid="GLOB"
         paramset="",
         # only used with grid="GLOB"
@@ -121,7 +122,7 @@ def main(
             ps.append(p)
             qs.append(queue)
             logging.debug("Number of alive processes: {}"
-                  .format(sum([i.is_alive() for i in ps])))
+                          .format(sum([i.is_alive() for i in ps])))
         else:
             date_creation_string, res = extract(target=results.target)
             dict_x = collect(res)
@@ -234,5 +235,5 @@ if __name__ == "__main__":
     main(
         parallel=parser.parse_args().parallel,
         keep_target=parser.parse_args().keep_target,
-        test = parser.parse_args().test
+        test=parser.parse_args().test
     )

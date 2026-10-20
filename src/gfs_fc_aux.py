@@ -16,5 +16,24 @@ DATA_FILE = "{}/forecast_gfs.json".format(DATA_DIR)
 
 STEPS = list(range(0, 121)) + list(range(123, 385, 3))  # 0 step is "anl"
 
+
 def defined_kwargs(**kwargs) -> dict:
     return {k: v for k, v in kwargs.items() if v is not None}
+
+
+def get_secret(
+        key: str,
+        default: str = ''
+) -> str:
+    """
+    fetch any PW from file, otherwise PW is default
+    :param key: filename that contains token - as provided in docker-compose
+    :param default: default PW
+    :return: PW
+    """
+
+    value = os.getenv(key, default)
+    if os.path.isfile(value):
+        with open(value) as f:
+            return f.read()
+    return value

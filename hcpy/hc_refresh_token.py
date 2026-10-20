@@ -8,7 +8,7 @@ import time
 import requests
 
 # internal imports
-from hc_aux import read_secrets, write_secrets, token_url
+from hc_aux import read_secrets, write_secrets, TOKEN_URL
 
 
 def refresh_token(
@@ -42,7 +42,7 @@ def refresh_token(
         # Refreshing an Access Token
         try:
             r = requests.post(
-                token_url,
+                url=TOKEN_URL,
                 data=refresh_token_fields,
                 allow_redirects=False,
                 timeout=None,  # wait eternally

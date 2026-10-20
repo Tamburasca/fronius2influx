@@ -1,4 +1,12 @@
 # Changelog
+## 1.11.0 (2026-10-20)
+### Added
+- Home Connect: check status of Dishwasher, before starting a new program
+### Changed
+### Fixed
+### Deprecated
+### Removed
+### Security
 ## 1.10.0 (2026-09-26)
 ### Added
 - Status of Home Connect queue in HTTP Rest API

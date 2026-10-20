@@ -12,24 +12,24 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Annotated, AsyncGenerator, Any
+from typing import Annotated, AsyncGenerator, Any, cast
 
 import requests
 import uvicorn
 from fastapi import FastAPI, status, WebSocket, WebSocketDisconnect, Query
 from fastapi.responses import JSONResponse, PlainTextResponse
-from starlette.middleware import Middleware
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 # internal
-from hcpy.hc_aux import read_secrets, asset_url, headers, ProgramsEnum
+from hcpy.hc_aux import read_secrets, ASSET_URL, headers, ProgramsEnum
 from src.__init__ import __version__
 from src.fronius_aux import (
     StatusDevice,
     StatusBattery,
     VisibleDevice,
     StatusErrors,
-    MYFORMAT
+    MYFORMAT,
+    defined_kwargs
 )
 
 logging_level: str = "INFO"
@@ -44,6 +44,25 @@ parameter_file = "{}/data/parameter.json".format(
 with open(parameter_file, 'r') as f:
     parameter = json.load(f)
 
+COMPLY = {
+    'BSH.Common.Status.RemoteControlStartAllowed': {
+        'value': True,
+        'msg': "Error: Remote control is not allowed."
+    },
+    'BSH.Common.Status.RemoteControlActive': {
+        'value': True,
+        'msg': "Error: Remote control is not active."
+    },
+    'BSH.Common.Status.DoorState': {
+        'value': 'BSH.Common.EnumType.DoorState.Closed',
+        'msg': "Error: Dishwasher door is not closed."
+    },
+    'BSH.Common.Status.OperationState': {
+        'value': 'BSH.Common.EnumType.OperationState.Ready',
+        'msg': "Error: Dishwasher is not ready."
+    }
+}
+
 
 class HC:
     def __init__(self) -> None:
@@ -53,13 +72,42 @@ class HC:
         self.program_name: str = ""
         self.percentage: int = 101  # for n.a.
         self.code: int = status.HTTP_200_OK
-        self.msg: str = "Request submitted. Battery level is yet to low."
+        self.msg: str = ""
+        self.log: str | None = None
 
     def reset(self) -> None:
+        self.log = None
+        secrets = read_secrets()
+
+        r = requests.get(
+            url=ASSET_URL
+                + "/"
+                + secrets['dishwasher']['haId']
+                + "/status",
+            headers=headers(
+                secrets['data']['access_token'])
+        )
+
+        # check if dishwasher can be addressed, e.g. access token expired or wrong haId
+        if r.status_code != requests.codes.ok:
+            self.active = False
+            self.processed = True
+            self.code = r.status_code
+            self.msg = r.json()['error']['key']
+            return
+        # check if dishwasher is ready to start program
+        for j in r.json()['data']['status']:
+            if j['value'] != COMPLY[j['key']]['value']:
+                self.active = False
+                self.processed = True
+                self.code = status.HTTP_400_BAD_REQUEST
+                self.msg = cast(str, COMPLY[j['key']]['msg'])
+                return
+
         self.active = True  # supersede any previous requests
         self.processed = False
-        self.code: int = status.HTTP_200_OK
-        self.msg: str = "Request submitted. Battery level is yet to low."
+        self.code = status.HTTP_200_OK
+        self.msg = "Request submitted. Battery level is yet to low."
 
 
 hc = HC()
@@ -76,7 +124,7 @@ class PostProcess:
 
     def __assign(self) -> None:
         """
-
+        Distribute the incoming message to the respective dicts.
         :return:
         """
         for v in self.__dict__.values():  # reset all dict
@@ -97,7 +145,9 @@ class PostProcess:
 
     def __start_dishwasher(self) -> None:
         """
-
+        Start the dishwasher if battery loading level is exceeded and
+        HomeConnect was set active in the start method. After submission of the
+        request, the active flag is set false.
         :return:
         """
         if hc.active:
@@ -108,14 +158,19 @@ class PostProcess:
                         "key": hc.program
                     }
                 }
+
                 r = requests.put(
-                    asset_url + "/" + secrets['dishwasher']['haId'] + "/programs/active",
+                    url=ASSET_URL
+                        + "/"
+                        + secrets['dishwasher']['haId']
+                        + "/programs/active",
                     headers=headers(
                         secrets['data']['access_token']),
                     json=payload
                 )
+
                 if r.status_code != requests.codes.no_content:
-                    msg = f"Error to start program '{hc.program_name}'."
+                    msg = f"Unable to start program '{hc.program_name}'."
                     logging.warning(msg=msg)
                     logging.warning(msg="Status_code: " + str(r.status_code))
                     logging.warning(msg="Status_text: " + r.text)
@@ -127,9 +182,11 @@ class PostProcess:
                     logging.info(msg="Status_code: " + str(r.status_code))
                     logging.info(msg="Status_text: " + r.text)
                     hc.msg = msg
-
+                hc.log = f"{time.asctime()}: {msg}"
                 hc.active = False
+
             hc.processed = True
+
         else:  # reset values after submission of request
             hc.program = ""
             hc.percentage = 101
@@ -218,6 +275,7 @@ class ASGIMiddleware:
             # print(scope, receive, send)
             await self.app(scope, receive, send)
         else:
+            # print(scope, receive, send)
             await self.app(scope, receive, send)
 
 
@@ -235,11 +293,11 @@ def relu(x: float | int) -> float | int: return max(0., x)
 
 pp = PostProcess()
 manager = ConnectionManager()
-app = FastAPI(title="Fronius Inverter Direct Readout",
-              description="Current Readings from the Inverter & Wallbox",
+app = FastAPI(title="Fronius2Influx HTTP Web API for Grafana",
+              description="Current Readings from the Inverter, Battery, & Wallbox",
               lifespan=lifespan,
-              middleware=[Middleware(ASGIMiddleware), ]  # type: ignore[arg-type]
               )
+app.add_middleware(ASGIMiddleware)  # middleware placeholder
 
 
 @app.websocket(parameter['RestAPI']['websocket'])  # websocket endpoint
@@ -253,7 +311,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
     try:
         while True:
             data = await websocket.receive_text()
-            pp.message = data  # assign data
+            pp.message = data  # message setter, assign data
             await manager.send_message(websocket, data)  # resend for confirmation
     except WebSocketDisconnect:
         manager.disconnect(websocket)
@@ -460,11 +518,10 @@ def start_dishwasher(  # async does not work! To be explored... websocket also n
     :param battery_loading_level:
     :return:
     """
-    hc.reset()
-
     hc.program = program_id.name
     hc.program_name = program_id.value
     hc.percentage = battery_loading_level
+    hc.reset()
 
     while not hc.processed:
         time.sleep(1.)
@@ -481,7 +538,8 @@ def start_dishwasher(  # async does not work! To be explored... websocket also n
          )
 async def status_dishwasher() -> JSONResponse:
     content: dict[str, Any] = {
-        "Start pending": hc.active
+        "Start pending": hc.active,
+        "Last Status": hc.log
     }
     if hc.active:
         content.update(
@@ -492,7 +550,7 @@ async def status_dishwasher() -> JSONResponse:
         )
 
     return JSONResponse(  # for Grafana
-        content=content,
+        content=defined_kwargs(**content),  # display only defined values
         status_code=status.HTTP_200_OK
     )
 

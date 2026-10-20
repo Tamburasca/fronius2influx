@@ -5,21 +5,21 @@ import os
 from enum import Enum
 from pathlib import Path
 
-working_dir = os.path.dirname(
+WORKING_DIR = os.path.dirname(
     os.path.realpath(__file__)
 )
-output_file = working_dir + "/data/secrets.json"
-refresh_file = working_dir + "/hc_refresh_token.py"
+OUTPUT_FILE = WORKING_DIR + "/data/secrets.json"
+REFRESH_FILE = WORKING_DIR + "/hc_refresh_token.py"
 
-base_url = "https://api.home-connect.com/security/oauth/"
-asset_url = "https://api.home-connect.com/api/homeappliances"
-token_url = base_url + "token"
+BASE_URL = "https://api.home-connect.com/security/oauth/"
+ASSET_URL = "https://api.home-connect.com/api/homeappliances"
+TOKEN_URL = BASE_URL + "token"
 
 
 def read_secrets() -> dict:
     try:
         with open(
-                file=output_file,
+                file=OUTPUT_FILE,
                 mode="r") as f:
             return json.load(f)
     except FileNotFoundError:
@@ -29,7 +29,7 @@ def read_secrets() -> dict:
 def write_secrets(
         secrets: dict
 ) -> None:
-    output = Path(output_file)
+    output = Path(OUTPUT_FILE)
     output.parent.mkdir(
         exist_ok=True,
         parents=True)  # create dir if not exists

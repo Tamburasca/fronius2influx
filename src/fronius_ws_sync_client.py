@@ -76,7 +76,7 @@ class WSSyncClient(object):
             self._set_not_connected()
 
     def _set_not_connected(self) -> None:
-        self.__ws.close()
+        self.__ws.close()  # idempotent, if not connected, it will not raise an exception
         self.__connected = False
         self.__msg_issued = True
 
