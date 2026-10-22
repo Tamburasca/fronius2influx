@@ -76,7 +76,6 @@ class HC:
         self.log: str | None = None
 
     def reset(self) -> None:
-        self.log = None
         secrets = read_secrets()
 
         r = requests.get(
@@ -108,6 +107,7 @@ class HC:
         self.processed = False
         self.code = status.HTTP_200_OK
         self.msg = "Request submitted. Battery level is yet to low."
+        # self.log = None
 
 
 hc = HC()
@@ -148,6 +148,7 @@ class PostProcess:
         Start the dishwasher if battery loading level is exceeded and
         HomeConnect was set active in the start method. After submission of the
         request, the active flag is set false.
+        see also https://apiclient.home-connect.com/#/images
         :return:
         """
         if hc.active:
@@ -499,7 +500,7 @@ async def query_version() -> JSONResponse:
                      "level is exceeded.",
          tags=["homeconnect"]
          )
-def start_dishwasher(  # async does not work! To be explored... websocket also needs to be async
+def start_dishwasher(
         program_id: Annotated[
             ProgramsEnum,
             Query(description="Program ID")

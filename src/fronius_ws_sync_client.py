@@ -41,7 +41,9 @@ class WSSyncClient(object):
         """
         try:
             if not self.__connected:
-                self.__ws = connect(self.__uri, timeout=None)
+                self.__ws = connect(
+                    self.__uri,
+                    timeout=None)
                 self._set_connected()
                 logging.info(f"Connected to Websocket Server ...")
             self.__ws.send(json.dumps(message))
@@ -76,7 +78,6 @@ class WSSyncClient(object):
             self._set_not_connected()
 
     def _set_not_connected(self) -> None:
-        self.__ws.close()  # idempotent, if not connected, it will not raise an exception
         self.__connected = False
         self.__msg_issued = True
 

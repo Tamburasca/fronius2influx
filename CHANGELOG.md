@@ -1,4 +1,14 @@
 # Changelog
+## 1.11.1 (2026-10-22)
+### Added
+### Changed
+- Make HTTP request async for starting HC
+- Last Status of Home Connect queue in HTTP Rest API
+### Fixed
+- removed idempotent close of websocket in HC start program
+### Deprecated
+### Removed
+### Security
 ## 1.11.0 (2026-10-20)
 ### Added
 - Home Connect: check status of Dishwasher, before starting a new program

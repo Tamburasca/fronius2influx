@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # start Rest API
-python3 -u src/HTTPrequest_v2.py &
+python3 -u src/HTTPrequest_v2_async.py &
+# Wait for the Rest API to start to prevent exception
 sleep 6
 # start fronius2influx.py
 python3 -u src/fronius2influx.py &

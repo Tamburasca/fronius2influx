@@ -9,11 +9,11 @@ COPY src/fronius2influx.py src/fronius_*.py src/__init__.py src/
 COPY src/wattpilot*.py src/
 COPY src/data/parameter.json src/data/
 COPY src/requirements.txt src/
-# HomeConnect  # ToDo
+# HomeConnect
 COPY hcpy/*.py hcpy/
 
-# Fronius RestAPI
-COPY src/HTTPrequest_v2.py src/
+# Fronius RestAPI sync and async
+COPY src/HTTPrequest_v2.py src/HTTPrequest_v2_async.py src/
 
 # does not work with docker-compose!
 COPY --chmod=+x src/wrapper.sh src/
