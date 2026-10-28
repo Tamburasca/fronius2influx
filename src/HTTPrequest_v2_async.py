@@ -95,6 +95,7 @@ class HC:
             self.code = r.status_code
             self.msg = r.json()['error']['key']
             return
+
         # check if dishwasher is ready to start program
         for j in r.json()['data']['status']:
             if j['value'] != COMPLY[j['key']]['value']:
@@ -163,10 +164,10 @@ class PostProcess:
 
                 r = await asyncio.to_thread(
                     requests.put,
-                    ASSET_URL
-                    + "/"
-                    + secrets['dishwasher']['haId']
-                    + "/programs/active",
+                    url=ASSET_URL
+                        + "/"
+                        + secrets['dishwasher']['haId']
+                        + "/programs/active",
                     headers=headers(
                         secrets['data']['access_token']),
                     json=payload,
@@ -185,7 +186,7 @@ class PostProcess:
                     logging.info(msg="Status_code: " + str(r.status_code))
                     logging.info(msg="Status_text: " + r.text)
                     hc.msg = msg
-                hc.log = f"{time.asctime()}: {msg}"
+                hc.log = f"{time.asctime()} (UT): {msg}"
                 hc.active = False
 
             hc.processed = True
